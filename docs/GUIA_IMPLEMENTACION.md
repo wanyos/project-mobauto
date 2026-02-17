@@ -37,7 +37,7 @@ Abre la terminal en la raíz del proyecto y ejecuta:
 
 ```bash
 # 1. Tailwind CSS (estilos utility-first)
-npm install -D @nuxtjs/tailwindcss
+npm install @nuxtjs/tailwindcss
 
 # 2. Quasar Framework (componentes UI: botones, tablas, diálogos, etc.)
 npm install nuxt-quasar-ui quasar @quasar/extras
@@ -142,9 +142,7 @@ export default defineNuxtConfig({
 
 ---
 
-### Paso 0.4 — Configurar Tailwind CSS
-
-Crea el archivo de configuración de Tailwind:
+### Paso 0.4 — Configurar main CSS
 
 ```bash
 # Crear la carpeta assets/css dentro de app/
@@ -156,70 +154,16 @@ Crea el archivo `app/assets/css/main.css`:
 ```css
 /* app/assets/css/main.css */
 
-/* Estas 3 directivas cargan Tailwind CSS */
-@tailwind base;       /* Reset de estilos y estilos base */
-@tailwind components; /* Clases de componentes (puedes añadir las tuyas) */
-@tailwind utilities;  /* Clases utility: mt-4, text-red-500, flex, etc. */
-
 /* ─── TUS ESTILOS GLOBALES ─── */
 
 body {
   font-family: 'Roboto', sans-serif;
 }
-
-/* Ejemplo: clase personalizada que combina utilidades de Tailwind */
-@layer components {
-  .btn-primary {
-    @apply bg-mobauto text-white px-6 py-2 rounded-lg hover:bg-mobauto-dark transition-colors;
-  }
-  .btn-accent {
-    @apply bg-accent text-white px-6 py-2 rounded-lg hover:bg-accent-dark transition-colors;
-  }
-}
 ```
 
-Crea el archivo `tailwind.config.ts` en la raíz del proyecto:
-
-```typescript
-// tailwind.config.ts
-import type { Config } from 'tailwindcss'
-
-export default {
-  content: [
-    './app/components/**/*.{vue,js,ts}',
-    './app/layouts/**/*.vue',
-    './app/pages/**/*.vue',
-    './app/composables/**/*.{js,ts}',
-    './app/plugins/**/*.{js,ts}',
-    './app/app.vue',
-  ],
-  theme: {
-    extend: {
-      colors: {
-        // Colores de Mobauto (úsalos como text-mobauto, bg-mobauto-light, etc.)
-        mobauto: {
-          DEFAULT: '#1B3A5C',  // Azul oscuro principal
-          light: '#2D5F8A',    // Azul medio
-          dark: '#0F2440',     // Azul muy oscuro
-        },
-        accent: {
-          DEFAULT: '#E8712B',  // Naranja acento
-          light: '#F09454',    // Naranja claro
-          dark: '#C45A1A',     // Naranja oscuro
-        },
-      },
-      fontFamily: {
-        // Para usar: class="font-heading" o class="font-body"
-        heading: ['Montserrat', 'sans-serif'],
-        body: ['Roboto', 'sans-serif'],
-      },
-    },
-  },
-  plugins: [],
-} satisfies Config
-```
-
-**¿Qué es `content`?** Le dice a Tailwind "busca clases CSS en estos archivos". Si no lo configuras, Tailwind no genera las clases que usas y los estilos no aparecen.
+> **Nota:** No necesitas añadir las directivas `@tailwind base/components/utilities` manualmente. El módulo `@nuxtjs/tailwindcss` las inyecta automáticamente. Tampoco necesitas crear un archivo `tailwind.config.ts` — el módulo detecta automáticamente las rutas de tus archivos dentro de `app/`.
+>
+> Si más adelante necesitas personalizar colores o fuentes de Tailwind, puedes crear un `tailwind.config.ts` en la raíz del proyecto. De momento no es necesario porque los colores de Mobauto están configurados en Quasar (`nuxt.config.ts > quasar > config > brand`).
 
 ---
 
