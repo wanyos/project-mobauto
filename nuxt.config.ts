@@ -3,7 +3,10 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
 
   // Herramientas de desarrollo (solo en modo dev)
-  devtools: { enabled: true },
+  devtools: { enabled: false },
+
+  // ─── CSS GLOBAL ───
+  css: ['~/assets/css/main.css'],
 
   // ─── MÓDULOS ───
   // Los módulos extienden Nuxt con funcionalidades extra.

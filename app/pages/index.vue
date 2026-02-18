@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <div class="flex-1 flex flex-col">
     <!-- ─── HERO SECTION ─── -->
-    <section class="bg-gradient-to-r from-mobauto-dark to-mobauto text-white py-20">
+    <section class="bg-gradient-to-r from-slate-900 to-blue-900 text-white py-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h1 class="text-4xl md:text-5xl font-bold font-heading mb-6">
           Chapa, pintura y mecánica en Humanes de Madrid
@@ -37,9 +37,9 @@
     </section>
 
     <!-- ─── SERVICIOS DESTACADOS ─── -->
-    <section class="py-16 bg-gray-50">
+    <section class="py-8 bg-gray-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-3xl font-bold text-center mb-12">Nuestros Servicios</h2>
+        <h2 class="text-3xl font-bold text-center mb-6">Nuestros Servicios</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <q-card
             v-for="service in featuredServices"
@@ -60,10 +60,10 @@
     </section>
 
     <!-- ─── CTA FINAL ─── -->
-    <section class="py-16 bg-blue-600 text-white text-center">
+    <section class="py-6 bg-blue-600 text-white text-center flex-1 flex items-center">
       <div class="max-w-3xl mx-auto px-4">
         <h2 class="text-3xl font-bold font-heading mb-4">¿Necesitas presupuesto?</h2>
-        <p class="text-xl text-blue-100 mb-8">
+        <p class="text-xl text-blue-100 mb-4">
           Llámanos al 916 04 12 62 o reserva tu cita online. Sin compromiso.
         </p>
         <q-btn
@@ -99,19 +99,19 @@ const featuredServices = [
     title: 'Chapa y Pintura',
     description: 'Nuestra especialidad. Reparación de golpes, arañazos y pintado profesional con acabado de fábrica.',
     icon: 'format_paint',
-    link: '/servicios/chapa-pintura',
+    link: '/servicios',
   },
   {
-    title: 'Cristales',
-    description: 'Reparación de impactos y sustitución de lunas y parabrisas. Gestión con el seguro.',
-    icon: 'window',
-    link: '/servicios/cristales',
+    title: 'Diagnóstico Electrónico',
+    description: 'Software de diagnóstico de última generación. Detectamos fallos con precisión antes de tocar tu vehículo.',
+    icon: 'computer',
+    link: '/servicios',
   },
   {
     title: 'Mecánica General',
     description: 'Diagnóstico y reparación de motor, frenos, suspensión, embrague y más.',
     icon: 'build',
-    link: '/servicios/reparacion-general',
+    link: '/servicios',
   },
 ]
 </script>
