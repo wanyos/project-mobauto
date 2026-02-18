@@ -229,16 +229,19 @@ export interface User {
   id: string
   email: string
   role: UserRole
+  firstName?: string
+  lastName?: string
+  phone?: string
   profile?: Profile
-  createdAt: string
-  updatedAt: string
+  createAt?: string
+  updateAt?: string
 }
 
 // Perfil del usuario
 export interface Profile {
   id: string
-  firstName: string
-  lastName: string
+  firstname: string
+  lastname: string
   phone?: string
   avatar?: string
 }
@@ -1171,151 +1174,146 @@ export default defineEventHandler((event) => {
 ### Paso 1.7 — Crear el Store de autenticación (Pinia)
 
 El store centraliza el estado del usuario. Cualquier componente puede leer si hay un usuario logueado.
+Usamos la sintaxis de **Composition API (setup store)** — es equivalente a un `<script setup>` pero para stores.
 
 Crea `app/stores/auth.ts`:
 
 ```typescript
 // app/stores/auth.ts
-// ─── Store de Autenticación con Pinia ───
+// ─── Store de Autenticación con Pinia (Composition API) ───
 //
-// ¿Qué es un Store?
-// Es un "almacén" de datos accesible desde cualquier componente.
-// En vez de pasar datos de padre a hijo con props (prop drilling),
-// cualquier componente puede leer/modificar el store directamente.
+// Usa la sintaxis de función (setup store) en vez de opciones.
+// Es equivalente a un <script setup> pero para stores:
+// - ref()      → reemplaza a state
+// - computed() → reemplaza a getters
+// - funciones  → reemplaza a actions
 //
-// Pinia tiene 3 conceptos:
-// - state:   los datos (como ref() pero compartidos)
-// - getters: datos computados (como computed() pero compartidos)
-// - actions: funciones que modifican el state
+// IMPORTANTE: Usamos useCookie() en vez de localStorage para el token.
+// Las cookies se envían automáticamente al servidor, así SSR y cliente
+// ven el mismo estado de autenticación (evita errores de hidratación).
 
 import { defineStore } from 'pinia'
 import type { User } from '~/types'
 
-// defineStore('nombre-unico', { ... })
-export const useAuthStore = defineStore('auth', {
-  // ─── STATE (datos) ───
-  state: () => ({
-    user: null as User | null,
-    token: null as string | null,
-    loading: false,
-  }),
+export const useAuthStore = defineStore('auth', () => {
+  // ─── STATE ───
+  // useCookie() funciona en SSR y cliente. El token persiste al recargar.
+  const tokenCookie = useCookie('auth_token', { maxAge: 60 * 60 * 24 * 7 }) // 7 días
+  const user = ref<User | null>(null)
+  const token = computed({
+    get: () => tokenCookie.value ?? null,
+    set: (val) => { tokenCookie.value = val },
+  })
+  const loading = ref(false)
 
-  // ─── GETTERS (datos computados) ───
-  getters: {
-    // ¿Hay usuario logueado?
-    isAuthenticated(): boolean {
-      return !!this.token && !!this.user
-    },
-    // ¿Es administrador?
-    isAdmin(): boolean {
-      return this.user?.role === 'ADMIN'
-    },
-    // Nombre completo
-    fullName(): string {
-      if (!this.user?.profile) return this.user?.email || ''
-      return `${this.user.profile.firstName} ${this.user.profile.lastName}`
-    },
-  },
+  // ─── GETTERS ───
+  const isAuthenticated = computed(() => !!token.value && !!user.value)
+  const isAdmin = computed(() => user.value?.role === 'ADMIN')
+  const fullName = computed(() => {
+    if (!user.value) return ''
+    if (user.value.firstName) return `${user.value.firstName} ${user.value.lastName}`
+    if (user.value.profile) return `${user.value.profile.firstname} ${user.value.profile.lastname}`
+    return user.value.email
+  })
 
-  // ─── ACTIONS (funciones) ───
-  actions: {
-    // ─── Registro ───
-    async register(data: {
-      email: string
-      password: string
-      firstName: string
-      lastName: string
-      phone?: string
-    }) {
-      this.loading = true
-      try {
-        // $fetch es la función de Nuxt para hacer peticiones HTTP.
-        // Es como fetch() pero con mejor manejo de errores y tipos.
-        const response = await $fetch('/api/auth/register', {
-          method: 'POST',
-          body: data,
-        })
+  // ─── ACTIONS ───
 
-        // Guardar token y usuario
-        this.token = response.data.token
-        this.user = response.data.user as User
+  // ─── Registro ───
+  async function register(data: {
+    email: string
+    password: string
+    firstName: string
+    lastName: string
+    phone?: string
+  }) {
+    loading.value = true
+    try {
+      // $fetch es la función de Nuxt para hacer peticiones HTTP.
+      // Es como fetch() pero con mejor manejo de errores y tipos.
+      const response = await $fetch('/api/auth/register', {
+        method: 'POST',
+        body: data,
+      })
 
-        // Guardar token en localStorage para que persista al recargar
-        if (import.meta.client) {
-          localStorage.setItem('auth_token', response.data.token)
-        }
+      // Guardar token y usuario (la cookie se actualiza automáticamente)
+      token.value = response.data.token
+      user.value = response.data.user as User
 
-        return response
-      } catch (error: any) {
-        // Re-lanzar el error para que el componente lo maneje
-        throw error
-      } finally {
-        // finally se ejecuta SIEMPRE, haya error o no
-        this.loading = false
-      }
-    },
+      return response
+    } catch (error: any) {
+      // Re-lanzar el error para que el componente lo maneje
+      throw error
+    } finally {
+      // finally se ejecuta SIEMPRE, haya error o no
+      loading.value = false
+    }
+  }
 
-    // ─── Login ───
-    async login(email: string, password: string) {
-      this.loading = true
-      try {
-        const response = await $fetch('/api/auth/login', {
-          method: 'POST',
-          body: { email, password },
-        })
+  // ─── Login ───
+  async function login(email: string, password: string) {
+    loading.value = true
+    try {
+      const response = await $fetch('/api/auth/login', {
+        method: 'POST',
+        body: { email, password },
+      })
 
-        this.token = response.data.token
-        this.user = response.data.user as User
+      token.value = response.data.token
+      user.value = response.data.user as User
 
-        if (import.meta.client) {
-          localStorage.setItem('auth_token', response.data.token)
-        }
+      return response
+    } catch (error: any) {
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
 
-        return response
-      } catch (error: any) {
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
+  // ─── Verificar sesión (al cargar la app) ───
+  async function fetchUser() {
+    // Si no hay token en la cookie, no hay sesión
+    if (!token.value) return
 
-    // ─── Verificar sesión (al cargar la app) ───
-    async fetchUser() {
-      // Si no hay token guardado, no hay sesión
-      if (import.meta.client) {
-        this.token = localStorage.getItem('auth_token')
-      }
-      if (!this.token) return
+    try {
+      const response = await $fetch('/api/auth/me', {
+        headers: {
+          Authorization: `Bearer ${token.value}`,
+        },
+      })
+      user.value = response.data as User
+    } catch {
+      // Token inválido o expirado → limpiar sesión
+      logout()
+    }
+  }
 
-      try {
-        const response = await $fetch('/api/auth/me', {
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
-        })
-        this.user = response.data as User
-      } catch {
-        // Token inválido o expirado → limpiar sesión
-        this.logout()
-      }
-    },
+  // ─── Logout ───
+  function logout() {
+    user.value = null
+    token.value = null
+    navigateTo('/')
+  }
 
-    // ─── Logout ───
-    logout() {
-      this.user = null
-      this.token = null
-      if (import.meta.client) {
-        localStorage.removeItem('auth_token')
-      }
-      // Redirigir al inicio
-      navigateTo('/')
-    },
-  },
+  return {
+    // State
+    user,
+    token,
+    loading,
+    // Getters
+    isAuthenticated,
+    isAdmin,
+    fullName,
+    // Actions
+    register,
+    login,
+    fetchUser,
+    logout,
+  }
 })
 ```
 
-**¿Qué es `import.meta.client`?**
-Nuxt ejecuta código tanto en el servidor (SSR) como en el navegador. `localStorage` solo existe en el navegador. `import.meta.client` es un "guard" que dice "ejecuta esto SOLO en el navegador".
+**¿Por qué `useCookie()` en vez de `localStorage`?**
+Nuxt ejecuta código en el servidor (SSR) y en el navegador. `localStorage` solo existe en el navegador, lo que causa errores de hidratación: el servidor renderiza "no autenticado" pero el cliente ve el token y renderiza "autenticado". `useCookie()` funciona en ambos entornos porque las cookies se envían automáticamente con cada petición HTTP.
 
 ---
 
@@ -1828,7 +1826,9 @@ const { user, logout } = useAuth()
 
 ### Paso 1.13 — Plugin para restaurar sesión
 
-Cuando el usuario recarga la página, perdemos el estado de Pinia. Este plugin verifica si hay un token guardado y restaura la sesión.
+Cuando el usuario recarga la página, perdemos el estado de Pinia (el `user` vuelve a `null`). Pero el token sigue en la cookie. Este plugin lee el token y llama a `/api/auth/me` para restaurar los datos del usuario.
+
+Se ejecuta en **servidor y cliente** porque usamos `useCookie()` (las cookies están disponibles en ambos entornos).
 
 Crea `app/plugins/auth.ts`:
 
@@ -1836,18 +1836,17 @@ Crea `app/plugins/auth.ts`:
 // app/plugins/auth.ts
 // ─── Plugin de Autenticación ───
 //
-// Los plugins se ejecutan UNA VEZ al arrancar la app.
-// Este verifica si hay un token guardado en localStorage
-// y restaura la sesión automáticamente.
+// Se ejecuta UNA VEZ al arrancar la app (en servidor Y cliente).
+// Si hay un token en la cookie, llama a /api/auth/me para
+// restaurar los datos del usuario.
 
-export default defineNuxtPlugin(async () => {
-  // Solo ejecutar en el navegador (localStorage no existe en el servidor)
-  if (import.meta.server) return
+import { useAuthStore } from '~/stores/auth'
 
-  const { fetchUser } = useAuth()
+export default defineNuxtPlugin(async (nuxtApp) => {
+  const authStore = useAuthStore(nuxtApp.$pinia as any)
 
-  // Intentar restaurar la sesión
-  await fetchUser()
+  // Si hay token en la cookie, restaurar la sesión
+  await authStore.fetchUser()
 })
 ```
 

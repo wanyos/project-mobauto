@@ -12,38 +12,56 @@
 
           <!-- Menú de navegación (desktop) -->
           <div class="hidden md:flex items-center gap-6">
-            <NuxtLink
-              to="/"
-              class="text-gray-600 hover:text-blue-600 transition-colors"
-            >
+             <NuxtLink to="/" class="text-gray-600 hover:text-blue-600 transition-colors">
               Inicio
             </NuxtLink>
-            <NuxtLink
-              to="/servicios"
-              class="text-gray-600 hover:text-blue-600 transition-colors"
-            >
+            <NuxtLink to="/servicios" class="text-gray-600 hover:text-blue-600 transition-colors">
               Servicios
             </NuxtLink>
-            <NuxtLink
-              to="/blog"
-              class="text-gray-600 hover:text-blue-600 transition-colors"
-            >
+            <NuxtLink to="/blog" class="text-gray-600 hover:text-blue-600 transition-colors">
               Blog
             </NuxtLink>
-            <NuxtLink
-              to="/reservar"
-              class="text-gray-600 hover:text-blue-600 transition-colors"
-            >
-              Reservar Cita
-            </NuxtLink>
-            <q-btn
-              to="/reservar"
-              color="primary"
-              label="Pedir Cita"
-              unelevated
-              rounded
-              no-caps
-            />
+
+            <!-- Si NO está logueado: mostrar botón de cita + login -->
+            <template v-if="!isAuthenticated">
+              <NuxtLink to="/login" class="text-gray-600 hover:text-blue-600 transition-colors">
+                Iniciar Sesión
+              </NuxtLink>
+              <q-btn to="/reservar" color="primary" label="Pedir Cita" unelevated rounded no-caps />
+            </template>
+
+            <!-- Si SÍ está logueado: mostrar menú de usuario -->
+            <template v-else>
+              <NuxtLink to="/mi-cuenta" class="text-gray-600 hover:text-blue-600 transition-colors">
+                Mi Cuenta
+              </NuxtLink>
+              <q-btn
+                round
+                flat
+                icon="person"
+                color="primary"
+              >
+                <q-menu>
+                  <q-list style="min-width: 200px">
+                    <q-item-label header>{{ user?.email }}</q-item-label>
+                    <q-separator />
+                    <q-item clickable to="/mi-cuenta" v-close-popup>
+                      <q-item-section avatar><q-icon name="dashboard" /></q-item-section>
+                      <q-item-section>Mi Cuenta</q-item-section>
+                    </q-item>
+                    <q-item clickable to="/reservar" v-close-popup>
+                      <q-item-section avatar><q-icon name="event" /></q-item-section>
+                      <q-item-section>Reservar Cita</q-item-section>
+                    </q-item>
+                    <q-separator />
+                    <q-item clickable @click="logout" v-close-popup>
+                      <q-item-section avatar><q-icon name="logout" color="red" /></q-item-section>
+                      <q-item-section class="text-red-600">Cerrar Sesión</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
+            </template>
           </div>
 
           <!-- Botón menú móvil -->
@@ -139,6 +157,7 @@
 
 <script setup lang="ts">
 const menuOpen = ref(false)
+const { isAuthenticated, user, logout } = useAuth()
 
 const navLinks = [
   { to: '/', label: 'Inicio', icon: 'home' },

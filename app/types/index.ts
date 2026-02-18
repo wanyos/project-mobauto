@@ -13,9 +13,12 @@ export interface User {
     id: string
     email: string
     role: UserRole
+    firstName?: string
+    lastName?: string
+    phone?: string
     profile?: Profile
-    createAt: String
-    updateAt: string
+    createAt?: string
+    updateAt?: string
 }
 
 export interface Vehicle {
