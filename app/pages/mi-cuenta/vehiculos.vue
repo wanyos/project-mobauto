@@ -1,0 +1,83 @@
+<template>
+  <div>
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Mis Vehículos</h1>
+      <q-btn color="primary" label="Añadir Vehículo" icon="add"
+        no-caps @click="showDialog = true" />
+    </div>
+
+    <!-- Lista de vehículos -->
+    <div v-if="vehicles.length === 0" class="text-center py-12">
+      <q-icon name="directions_car" size="64px" color="grey-4" />
+      <p class="text-gray-500 mt-4">No tienes vehículos registrados.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <q-card v-for="vehicle in vehicles" :key="vehicle.id">
+        <q-card-section>
+          <div class="flex items-center gap-4">
+            <q-icon name="directions_car" size="40px" color="primary" />
+            <div>
+              <h3 class="font-bold text-lg">{{ vehicle.brand }} {{ vehicle.model }}</h3>
+              <p class="text-gray-500">{{ vehicle.year }} · {{ vehicle.plate }}</p>
+            </div>
+          </div>
+        </q-card-section>
+        <q-card-actions>
+          <q-btn flat color="primary" label="Ver historial" no-caps />
+          <q-btn flat color="negative" label="Eliminar" no-caps
+            @click="removeVehicle(vehicle.id)" />
+        </q-card-actions>
+      </q-card>
+    </div>
+
+    <!-- Diálogo para añadir vehículo -->
+    <q-dialog v-model="showDialog">
+      <q-card style="min-width: 400px">
+        <q-card-section>
+          <h3 class="text-lg font-bold">Añadir Vehículo</h3>
+        </q-card-section>
+        <q-card-section class="space-y-4">
+          <q-input v-model="newVehicle.brand" label="Marca" outlined />
+          <q-input v-model="newVehicle.model" label="Modelo" outlined />
+          <q-input v-model="newVehicle.year" label="Año" type="number" outlined />
+          <q-input v-model="newVehicle.plate" label="Matrícula" outlined />
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Cancelar" no-caps v-close-popup />
+          <q-btn color="primary" label="Guardar" no-caps @click="addVehicle" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+  </div>
+</template>
+
+<script setup lang="ts">
+definePageMeta({ middleware: 'auth', layout: 'client' })
+useSeoMeta({ title: 'Mis Vehículos - Mobauto' })
+
+// Estado local (en el futuro vendrá del backend)
+const vehicles = ref<Array<{
+  id: string; brand: string; model: string; year: number; plate: string
+}>>([])
+
+const showDialog = ref(false)
+const newVehicle = reactive({ brand: '', model: '', year: '', plate: '' })
+
+function addVehicle() {
+  vehicles.value.push({
+    id: crypto.randomUUID(),
+    brand: newVehicle.brand,
+    model: newVehicle.model,
+    year: parseInt(newVehicle.year) || 0,
+    plate: newVehicle.plate,
+  })
+  // Reset form
+  Object.assign(newVehicle, { brand: '', model: '', year: '', plate: '' })
+  showDialog.value = false
+}
+
+function removeVehicle(id: string) {
+  vehicles.value = vehicles.value.filter(v => v.id !== id)
+}
+</script>

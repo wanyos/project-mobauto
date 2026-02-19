@@ -1,0 +1,70 @@
+<template>
+  <div>
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Mis Citas</h1>
+      <q-btn color="primary" label="Nueva Cita" icon="add" no-caps to="/reservar" />
+    </div>
+
+    <q-card>
+      <q-card-section v-if="appointments.length === 0" class="text-center py-12">
+        <q-icon name="event_busy" size="64px" color="grey-4" />
+        <p class="text-gray-500 mt-4">No tienes citas aún.</p>
+        <q-btn color="primary" label="Reservar tu primera cita" no-caps
+          to="/reservar" class="mt-4" />
+      </q-card-section>
+
+      <q-list v-else separator>
+        <q-item v-for="apt in appointments" :key="apt.id">
+          <q-item-section avatar>
+            <q-icon name="event" :color="statusColor(apt.status)" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ apt.services.join(', ') }}</q-item-label>
+            <q-item-label caption>
+              {{ apt.scheduledDate }} a las {{ apt.scheduledTime }}
+            </q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-badge :color="statusColor(apt.status)" :label="statusLabel(apt.status)" />
+          </q-item-section>
+        </q-item>
+      </q-list>
+    </q-card>
+  </div>
+</template>
+
+<script setup lang="ts">
+definePageMeta({ middleware: 'auth', layout: 'client' })
+useSeoMeta({ title: 'Mis Citas - Mobauto' })
+
+const { user } = useAuth()
+const appointments = ref<any[]>([])
+
+// Cargar citas del usuario
+onMounted(async () => {
+  // TODO: endpoint real filtrado por usuario
+  // Por ahora, cargamos todas las citas (demo)
+})
+
+function statusColor(status: string): string {
+  const colors: Record<string, string> = {
+    PENDING: 'warning',
+    CONFIRMED: 'primary',
+    IN_PROGRESS: 'info',
+    COMPLETED: 'positive',
+    CANCELLED: 'negative',
+  }
+  return colors[status] || 'grey'
+}
+
+function statusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    PENDING: 'Pendiente',
+    CONFIRMED: 'Confirmada',
+    IN_PROGRESS: 'En proceso',
+    COMPLETED: 'Completada',
+    CANCELLED: 'Cancelada',
+  }
+  return labels[status] || status
+}
+</script>

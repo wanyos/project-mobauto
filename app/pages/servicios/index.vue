@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Header -->
-    <section class="bg-gradient-to-r from-mobauto-dark to-mobauto text-white py-16">
+    <section class="bg-gradient-to-r from-[#1B3A5C] to-[#2D5F8A] text-white py-16">
       <div class="max-w-7xl mx-auto px-4 text-center">
         <h1 class="text-4xl font-bold mb-4">Nuestros Servicios</h1>
         <p class="text-xl text-blue-100 max-w-2xl mx-auto">
