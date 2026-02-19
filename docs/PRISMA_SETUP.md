@@ -13,6 +13,9 @@
 El `docker-compose.yml` ya esta creado en la raiz del proyecto.
 
 ```bash
+# Para levantar Docker con el .env.local usarías:
+docker compose --env-file .env.local up -d
+
 # Levantar los contenedores (Postgres + pgAdmin)
 docker compose up -d
 
