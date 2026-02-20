@@ -3,6 +3,7 @@
 // En desarrollo, evita crear multiples conexiones por hot-reload.
 
 // Prisma v7 requiere un Driver Adapter para conectarse a la base de datos.
+import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '../../app/generated/prisma/client'
 
@@ -11,7 +12,11 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL!,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  })
+  const adapter = new PrismaPg(pool)
   return new PrismaClient({ adapter })
 }
 
