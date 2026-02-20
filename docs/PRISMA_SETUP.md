@@ -10,37 +10,41 @@
 
 ## Paso 1 — Levantar PostgreSQL con Docker
 
-El `docker-compose.yml` ya esta creado en la raiz del proyecto.
+El `docker-compose.yml` ya esta creado en la raiz del proyecto con credenciales hardcodeadas (sin variables de entorno):
 
-```bash
-# Para levantar Docker con el .env.local usarías:
-docker compose --env-file .env.local up -d
+```yaml
+services:
+  db:
+    image: postgis/postgis:15-3.3
+    platform: linux/amd64
+    container_name: mobauto-db
+    environment:
+      POSTGRES_USER: mobauto
+      POSTGRES_PASSWORD: mobauto
+      POSTGRES_DB: mobauto
+    ports:
+      - 2345:5432
+    volumes:
+      - pg_data:/var/lib/postgresql/data
 
-# Levantar los contenedores (Postgres + pgAdmin)
-docker compose up -d
-
-# Verificar que estan corriendo
-docker compose ps
+volumes:
+  pg_data:
+    external: false
 ```
 
-Accesos:
-- **PostgreSQL**: `localhost:5432` (user: `mobauto`, password: `password_segura`, db: `mobauto`)
-- **pgAdmin**: `http://localhost:5050` (email: `admin@mobauto.es`, password: `admin`)
+```bash
+# Levantar el contenedor de Postgres
+docker compose up -d
 
-### Configurar pgAdmin para conectar a Postgres
+# Verificar que esta corriendo
+docker ps
+```
 
-1. Abre `http://localhost:5050`
-2. Click derecho en "Servers" > "Register" > "Server"
-3. Pestaña "General": Name = `Mobauto Local`
-4. Pestaña "Connection":
-   - Host: `db` (nombre del servicio en docker-compose, NO localhost)
-   - Port: `5432`
-   - Database: `mobauto`
-   - Username: `mobauto`
-   - Password: `password_segura`
-5. Guardar
+Acceso: **PostgreSQL** en `localhost:2345` (user: `mobauto`, password: `mobauto`, db: `mobauto`)
 
-> **Nota**: Si pgAdmin no conecta con `db`, prueba con `host.docker.internal` o la IP del contenedor.
+> **Por que el puerto 2345?** Para evitar conflictos con instalaciones locales de PostgreSQL que ocupan el puerto 5432 por defecto (comun en Windows).
+
+> **Para resetear la base de datos** (borra todos los datos): `docker compose down -v && docker compose up -d`
 
 ---
 
@@ -53,38 +57,85 @@ npm install prisma --save-dev
 # Instalar el cliente de Prisma (dependencia de produccion)
 npm install @prisma/client
 
+# Instalar dotenv (necesario para que Prisma CLI cargue variables de entorno)
+npm install dotenv
+
+# Instalar el Driver Adapter para PostgreSQL (OBLIGATORIO en Prisma v7 con el nuevo generador)
+npm install @prisma/adapter-pg pg
+npm install --save-dev @types/pg
+
 # Inicializar Prisma en el proyecto
 npx prisma init
 ```
 
+> **IMPORTANTE — Prisma v7 y Driver Adapters**: El nuevo generador `prisma-client` ya no soporta
+> conexiones directas con URL. En su lugar requiere un **Driver Adapter**. Para PostgreSQL se usa
+> `@prisma/adapter-pg` (que internamente usa el paquete `pg`). Sin estos paquetes el cliente
+> no se puede instanciar y TypeScript lanzara "Expected 1 arguments, but got 0".
+
 Esto crea:
 - `prisma/schema.prisma` — El archivo donde defines tus tablas
-- `.env` — Archivo con la URL de conexion a la base de datos
+- `prisma.config.ts` — Configuracion de Prisma (URL, rutas de migraciones...) *(Prisma v7)*
+- `.env` — Variables de entorno para el CLI de Prisma
 
 ---
 
 ## Paso 3 — Configurar la conexion
 
-Edita el archivo `.env` en la raiz del proyecto:
+En este proyecto se usan **dos archivos de entorno** con roles distintos:
+
+| Archivo | Lo lee | Para que |
+|---|---|---|
+| `.env` | Prisma CLI (via `dotenv`) | Migraciones, seed, studio |
+| `.env.local` | Nuxt (automaticamente) | La app en ejecucion (JWT, etc.) |
+
+### `.env` — Solo la URL para Prisma CLI
+
+Solo necesita `DATABASE_URL`. No hacen falta variables individuales porque docker-compose tiene las credenciales hardcodeadas.
 
 ```env
-DATABASE_URL="postgresql://mobauto:password_segura@localhost:5432/mobauto?schema=public"
+DATABASE_URL="postgresql://mobauto:mobauto@localhost:2345/mobauto"
 ```
 
-> **IMPORTANTE**: Anade `.env` al `.gitignore` si no esta ya. Nunca subas credenciales al repositorio.
+### `.env.local` — Para Nuxt
 
-Verifica que `prisma/schema.prisma` tiene el datasource correcto:
+```env
+# ─── Base de datos ───
+DB_HOST="localhost"
+DB_PORT="2345"
+DB_USER="mobauto"
+DB_PASSWORD="mobauto"
+DB_NAME="mobauto"
+DATABASE_URL="postgresql://mobauto:mobauto@localhost:2345/mobauto"
 
-```prisma
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+# ─── Autenticacion (JWT) ───
+JWT_SECRET="tu_clave_secreta_segura_aqui"
 ```
+
+> **IMPORTANTE**: `.env.local` NO expande variables como `${DB_USER}` — dotenv las toma como texto literal. Usa la URL hardcodeada en su lugar.
+
+> **IMPORTANTE**: Ambos archivos deben estar en `.gitignore`. Nunca subas credenciales al repositorio.
+
+### `prisma.config.ts` — Configuracion de Prisma v7
+
+```typescript
+import { config } from 'dotenv'
+import { defineConfig, env } from 'prisma/config'
+
+config({ path: '.env' })  // Carga el .env (NO el .env.local)
+
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+  migrations: {
+    path: 'prisma/migrations',
+  },
+  datasource: {
+    url: env('DATABASE_URL'),  // Usa la funcion env() de Prisma
+  },
+})
+```
+
+> **Por que cargar `.env` y no `.env.local`?** dotenv no expande variables del tipo `${DB_USER}` en `.env.local`, lo que causaria un error de URL invalida. El `.env` tiene la URL completa hardcodeada.
 
 ---
 
@@ -92,14 +143,17 @@ datasource db {
 
 Reemplaza el contenido de `prisma/schema.prisma` con el schema completo del proyecto.
 
+> **Prisma v7**: El provider es `prisma-client` (no `prisma-client-js`) y la URL va en `prisma.config.ts`, no aqui.
+
 ```prisma
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // La URL se configura en prisma.config.ts
 }
 
 // ─────────────────────────────────────────────
@@ -361,9 +415,6 @@ npx prisma migrate dev --name init
 # 2. Ejecuta ese SQL en tu base de datos
 # 3. Regenera el cliente de Prisma (@prisma/client)
 ```
-
-Verifica en pgAdmin que las tablas se crearon correctamente.
-
 ---
 
 ## Paso 6 — Crear el cliente de Prisma para Nuxt
@@ -375,13 +426,20 @@ Crea el archivo `server/utils/prisma.ts`:
 // Cliente de Prisma reutilizable en todo el servidor.
 // En desarrollo, evita crear multiples conexiones por hot-reload.
 
-import { PrismaClient } from '@prisma/client'
+// Prisma v7 requiere un Driver Adapter para conectarse a la base de datos.
+import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from '../../app/generated/prisma/client'
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
+  prisma: InstanceType<typeof PrismaClient> | undefined
 }
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient()
+function createPrismaClient() {
+  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
+  return new PrismaClient({ adapter })
+}
+
+export const prisma = globalForPrisma.prisma ?? createPrismaClient()
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma
@@ -389,6 +447,19 @@ if (process.env.NODE_ENV !== 'production') {
 ```
 
 > **Por que el patron globalForPrisma?** En desarrollo, Nuxt hace hot-reload y cada recarga crearia una nueva conexion a Postgres. Con este patron, reutilizamos la misma conexion.
+
+> **Por que ruta relativa y no `~/app/generated/prisma`?** En Nuxt 4, el alias `~` apunta al
+> directorio `app/` (el srcDir), NO a la raiz del proyecto. Usar `~/app/generated/prisma` en un
+> archivo de `server/` buscaria `app/app/generated/prisma` que no existe. La ruta relativa
+> `../../app/generated/prisma/client` es correcta y fiable desde `server/utils/`.
+
+> **Por que `/client` al final del import?** El generador de Prisma v7 no crea un `index.ts`.
+> El punto de entrada del cliente es directamente el archivo `client.ts` dentro de la carpeta generada.
+
+> **Por que `PrismaPg` y no `new PrismaClient()` directo?** El nuevo generador `prisma-client`
+> de Prisma v7 elimino el soporte de conexion directa con URL. El constructor ahora exige un
+> Driver Adapter (`adapter`) o una URL de Prisma Accelerate. Para PostgreSQL local se usa
+> `@prisma/adapter-pg`.
 
 ---
 
@@ -398,10 +469,13 @@ Crea `prisma/seed.ts` para rellenar la base de datos con los servicios de Mobaut
 
 ```typescript
 // prisma/seed.ts
-import { PrismaClient } from '@prisma/client'
+// Prisma v7: importar desde el archivo client.ts de la ruta de output del schema
+import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from '../app/generated/prisma/client'
 import bcrypt from 'bcrypt'
 
-const prisma = new PrismaClient()
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   console.log('Seeding database...')
@@ -561,20 +635,31 @@ main()
   })
 ```
 
-Anade el script de seed en `package.json`:
+Registra el seed en `prisma.config.ts` — En Prisma v7 el seed ya NO va en `package.json`,
+sino en la seccion `migrations` del archivo de configuracion de Prisma:
 
-```json
-{
-  "prisma": {
-    "seed": "npx tsx prisma/seed.ts"
-  }
-}
+```typescript
+// prisma.config.ts
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+  migrations: {
+    path: 'prisma/migrations',
+    seed: 'npx tsx prisma/seed.ts',  // <-- aqui
+  },
+  datasource: {
+    url: env('DATABASE_URL'),
+  },
+})
 ```
 
-Instala `tsx` para ejecutar TypeScript:
+> **Error comun — "No seed command configured"**: En Prisma v5/v6 el seed se configuraba en
+> `package.json` con `"prisma": { "seed": "..." }`. En Prisma v7 eso ya no funciona. Hay que
+> ponerlo en `prisma.config.ts` bajo `migrations.seed`.
+
+Instala `tsx` para ejecutar TypeScript (si no lo tienes ya):
 
 ```bash
-npm install tsx --save-dev
+npm install --save-dev tsx
 ```
 
 Ejecuta el seed:
@@ -615,7 +700,9 @@ Una vez configurado, asi se usa Prisma en los endpoints de Nuxt:
 
 ```typescript
 // server/api/auth/register.post.ts (ejemplo actualizado)
-import { prisma } from '~/server/utils/prisma'
+// En Nuxt 4, server/utils/ es auto-importado: NO hace falta importar prisma manualmente.
+// Si el IDE lo exige, usa la ruta relativa:
+// import { prisma } from '../utils/prisma'
 import bcrypt from 'bcrypt'
 
 export default defineEventHandler(async (event) => {
@@ -653,11 +740,23 @@ export default defineEventHandler(async (event) => {
 
 | Paso | Comando / Accion | Que hace |
 |------|-------------------|----------|
-| 1 | `docker compose up -d` | Levanta Postgres + pgAdmin |
-| 2 | `npm install prisma --save-dev && npm install @prisma/client` | Instala Prisma |
-| 3 | `npx prisma init` | Crea schema.prisma y .env |
-| 4 | Editar `prisma/schema.prisma` | Definir tablas y relaciones |
-| 5 | `npx prisma migrate dev --name init` | Crear tablas en Postgres |
-| 6 | Crear `server/utils/prisma.ts` | Cliente reutilizable |
-| 7 | `npx prisma db seed` | Rellenar datos iniciales |
-| 8 | Actualizar endpoints en `server/api/` | Reemplazar arrays en memoria por Prisma |
+| 1 | `docker compose up -d` | Levanta Postgres |
+| 2 | `npm install prisma --save-dev && npm install @prisma/client @prisma/adapter-pg pg dotenv` | Instala Prisma + Driver Adapter |
+| 2b | `npm install --save-dev @types/pg` | Tipos TypeScript para pg |
+| 3 | `npx prisma init` | Crea schema.prisma, prisma.config.ts y .env |
+| 4 | Editar `prisma/schema.prisma` — usar `provider = "prisma-client"` y `output = "../app/generated/prisma"` | Definir tablas y relaciones |
+| 5 | `npx prisma generate` | Genera el cliente TypeScript en `app/generated/prisma/` |
+| 6 | `npx prisma migrate dev --name init` | Crear tablas en Postgres |
+| 7 | Crear `server/utils/prisma.ts` con `PrismaPg` adapter | Cliente reutilizable |
+| 8 | `npx prisma db seed` | Rellenar datos iniciales |
+| 9 | Actualizar endpoints en `server/api/` | Usar prisma (auto-importado por Nuxt) |
+
+### Errores comunes en Prisma v7 + Nuxt 4
+
+| Error | Causa | Solucion |
+|-------|-------|----------|
+| `Cannot find module '~/app/generated/prisma'` | En Nuxt 4, `~` apunta a `app/`, no a la raiz | Usar ruta relativa: `../../app/generated/prisma/client` |
+| `Cannot find module '../../app/generated/prisma'` | No hay `index.ts` en la carpeta generada | Apuntar al archivo directamente: `.../prisma/client` |
+| `Expected 1 arguments, but got 0` en `new PrismaClient()` | Prisma v7 ya no acepta conexion directa con URL | Usar `PrismaPg` adapter: `new PrismaClient({ adapter })` |
+| `Cannot find module '@prisma/adapter-pg'` | Paquete no instalado | `npm install @prisma/adapter-pg pg` |
+| `No seed command configured` | En Prisma v7 el seed ya no va en `package.json` | Moverlo a `prisma.config.ts` bajo `migrations.seed` |

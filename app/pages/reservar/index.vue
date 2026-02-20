@@ -172,12 +172,13 @@ const form = reactive({
   notes: '',
 })
 
-const availableServices = getServices()
+const { data: servicesData } = await useFetch('/api/services')
+const availableServices = computed(() => servicesData.value?.data ?? [])
 
 // Nombres de los servicios seleccionados (para el resumen)
 const selectedServiceNames = computed(() => {
-  return form.services.map(slug => {
-    const service = getServiceBySlug(slug)
+  return form.services.map((slug) => {
+    const service = availableServices.value.find((s) => s.slug === slug)
     return service?.name || slug
   })
 })

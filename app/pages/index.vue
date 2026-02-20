@@ -208,8 +208,8 @@ useHead({
 })
 
 // ─── Datos ───
-const allServices = getServices()
-const featuredServices = allServices.slice(0, 3) // Mostrar solo los 3 primeros
+const { data: servicesData } = await useFetch('/api/services')
+const featuredServices = computed(() => (servicesData.value?.data ?? []).slice(0, 3))
 
 const reasons = [
   { icon: 'verified', title: 'Profesionalidad', description: 'Mecánicos certificados con más de 10 años de experiencia.' },

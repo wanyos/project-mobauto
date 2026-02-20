@@ -224,36 +224,58 @@ SeeNode es una plataforma sencilla con precios economicos y PostgreSQL incluido.
 
 ### Paso 3 — Configurar el servicio
 
-SeeNode detecta el proyecto automaticamente, pero verifica:
+SeeNode detecta el proyecto automaticamente, pero hay que ajustar algunos valores:
 
 - **Name**: `mobauto`
-- **Build Command**: `npm run build` (se detecta del package.json)
+- **Root Directory**: dejar vacio (por defecto, raiz del repositorio)
+- **Build Command**: `npm install && npm run build`
 - **Start Command**: `node .output/server/index.mjs`
 
-### Paso 4 — Anadir PostgreSQL
+> **Importante**: El build command debe incluir `npm install` porque SeeNode no instala las dependencias automaticamente antes del build. Sin esto, el build falla con `nuxt: not found`.
+
+### Paso 4 — Configurar variables de entorno
+
+En tu servicio web, ve a la seccion de variables de entorno y anade:
+
+| Variable | Valor | Descripcion |
+|---|---|---|
+| `PORT` | `80` | Puerto en el que escucha la app (SeeNode espera el 80 por defecto) |
+| `HOST` | `0.0.0.0` | La app debe escuchar en todas las interfaces |
+| `NODE_ENV` | `production` | Modo produccion |
+| `JWT_SECRET` | (cadena aleatoria) | Clave para firmar tokens JWT |
+
+> **Importante**: Sin `PORT=80`, la app escucha en el puerto 3000 (por defecto de Nuxt) y SeeNode devuelve un error `502 Bad Gateway`.
+
+Para generar un `JWT_SECRET` seguro:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+### Paso 5 — Deploy
+
+1. Click en "Create Web Service"
+2. SeeNode clonara el repo, instalara dependencias y hara build
+3. Puedes ver los logs en tiempo real
+4. En los logs deberias ver: `Listening on http://0.0.0.0:80`
+5. En 1-5 minutos tu app estara online con una URL de SeeNode
+
+> **Deploy automatico**: A partir de ahora, cada vez que hagas `git push` a la rama `main`, SeeNode detecta el cambio y redespliega la app automaticamente. No hace falta hacer nada en el panel.
+
+> **Nota sobre variables de entorno**: Si cambias una variable de entorno en el panel de SeeNode, necesitas forzar un nuevo deploy (no basta con guardar) porque SeeNode inyecta las variables en build time. Para forzar un redeploy sin cambios de codigo:
+> ```bash
+> git commit --allow-empty -m "trigger redeploy" && git push
+> ```
+
+### Paso 6 — Anadir PostgreSQL (cuando se implemente Prisma)
 
 1. En el dashboard, click en "New" > "Database"
 2. Selecciona "PostgreSQL"
 3. Ponle nombre: `mobauto-db`
 4. **Importante**: Selecciona la misma region que tu servicio web
 5. SeeNode te dara un **connection string**, copialo
+6. Anade la variable de entorno `DATABASE_URL` con el connection string
 
-### Paso 5 — Configurar variables de entorno
-
-En tu servicio web, ve a la seccion de variables de entorno y anade:
-
-| Variable | Valor |
-|---|---|
-| `DATABASE_URL` | El connection string de PostgreSQL (paso 4) |
-| `JWT_SECRET` | Una cadena secreta larga |
-| `NODE_ENV` | `production` |
-
-### Paso 6 — Deploy
-
-1. Click en "Create Web Service"
-2. SeeNode clonara el repo, instalara dependencias y hara build
-3. Puedes ver los logs en tiempo real
-4. En 1-5 minutos tu app estara online con una URL de SeeNode
 
 ### Paso 7 — Ejecutar migraciones
 

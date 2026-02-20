@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // 2. Buscar usuario por email
-  const user = findUserByEmail(email)
+  const user = await prisma.user.findUnique({ where: { email } })
   if (!user) {
     // IMPORTANTE: no decimos "usuario no encontrado" por seguridad.
     // Si decimos eso, un atacante sabría qué emails están registrados.

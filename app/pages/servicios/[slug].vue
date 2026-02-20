@@ -113,43 +113,37 @@
 const route = useRoute()
 const slug = route.params.slug as string
 
-// ─── Buscar el servicio ───
-const service = getServiceBySlug(slug)
+// ─── Buscar el servicio en la API ───
+const { data } = await useFetch(`/api/services/${slug}`)
+const service = computed(() => data.value?.data ?? null)
 
 // ─── SEO dinámico ───
-// Los meta tags cambian según el servicio que se esté viendo.
-if (service) {
-  useSeoMeta({
-    title: `${service.name} - Mobauto Taller Mecánico`,
-    description: service.fullDescription.slice(0, 160), // Google muestra ~160 caracteres
-    ogTitle: `${service.name} - Mobauto`,
-    ogDescription: service.shortDescription,
-  })
+useSeoMeta({
+  title: () => service.value ? `${service.value.name} - Mobauto Taller Mecánico` : 'Servicio no encontrado - Mobauto',
+  description: () => service.value?.fullDescription?.slice(0, 160) ?? '',
+  ogTitle: () => service.value ? `${service.value.name} - Mobauto` : '',
+  ogDescription: () => service.value?.shortDescription ?? '',
+})
 
-  // FAQ Schema (le dice a Google que esta página tiene FAQs)
-  // Google puede mostrarlas directamente en los resultados de búsqueda.
-  if (service.faqs.length) {
-    useHead({
-      script: [
-        {
-          type: 'application/ld+json',
-          innerHTML: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'FAQPage',
-            mainEntity: service.faqs.map(faq => ({
-              '@type': 'Question',
-              name: faq.question,
-              acceptedAnswer: {
-                '@type': 'Answer',
-                text: faq.answer,
-              },
-            })),
-          }),
-        },
-      ],
-    })
-  }
-} else {
-  useSeoMeta({ title: 'Servicio no encontrado - Mobauto' })
-}
+// FAQ Schema (le dice a Google que esta página tiene FAQs)
+useHead({
+  script: computed(() =>
+    service.value?.faqs?.length
+      ? [
+          {
+            type: 'application/ld+json',
+            innerHTML: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: service.value.faqs.map((faq) => ({
+                '@type': 'Question',
+                name: faq.question,
+                acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+              })),
+            }),
+          },
+        ]
+      : []
+  ),
+})
 </script>

@@ -13,9 +13,10 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // TODO: Integrar con Resend para enviar email al taller
-  // Por ahora, solo lo logueamos en la consola del servidor
-  console.log("📩 Nuevo mensaje de contacto:", { name, email, message });
+  // Guardar en la base de datos
+  await prisma.contactMessage.create({
+    data: { name, email, message },
+  })
 
   return { success: true, message: "Mensaje recibido correctamente" };
 });

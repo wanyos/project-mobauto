@@ -38,10 +38,10 @@ export default defineEventHandler(async (event) => {
   }
 
   // 3. Verificar que el email no esté ya registrado
-  const existingUser = findUserByEmail(email)
+  const existingUser = await prisma.user.findUnique({ where: { email } })
   if (existingUser) {
     throw createError({
-      statusCode: 409, // 409 = Conflict (ya existe)
+      statusCode: 409,
       statusMessage: 'Ya existe un usuario con ese email',
     })
   }
@@ -49,14 +49,16 @@ export default defineEventHandler(async (event) => {
   // 4. Hashear la contraseña (NUNCA guardar la contraseña en texto plano)
   const passwordHash = await hashPassword(password)
 
-  // 5. Crear el usuario
-  const user = createUser({
-    email,
-    passwordHash,
-    role: 'CUSTOMER', // Por defecto, todos son clientes
-    firstName,
-    lastName,
-    phone,
+  // 5. Crear el usuario en la base de datos
+  const user = await prisma.user.create({
+    data: {
+      email,
+      passwordHash,
+      role: 'CUSTOMER',
+      firstName,
+      lastName,
+      phone: phone || null,
+    },
   })
 
   // 6. Crear el token JWT

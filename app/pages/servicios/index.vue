@@ -52,5 +52,6 @@ useSeoMeta({
   description: 'Servicios de chapa y pintura, reparación de cristales, mecánica general, mantenimiento y pre-ITV en Humanes de Madrid. Presupuesto sin compromiso.',
 })
 
-const services = getServices()
+const { data } = await useFetch('/api/services')
+const services = computed(() => data.value?.data ?? [])
 </script>

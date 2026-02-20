@@ -2,7 +2,7 @@
 // Devuelve los datos del usuario logueado.
 // El frontend llama a esto al cargar la app para verificar si el token sigue válido.
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
   // 1. Extraer datos del token JWT
   const authData = getUserFromEvent(event)
 
@@ -13,8 +13,8 @@ export default defineEventHandler((event) => {
     })
   }
 
-  // 2. Buscar usuario en la "base de datos"
-  const user = findUserById(authData.userId)
+  // 2. Buscar usuario en la base de datos
+  const user = await prisma.user.findUnique({ where: { id: authData.userId } })
 
   if (!user) {
     throw createError({

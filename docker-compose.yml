@@ -1,24 +1,17 @@
-# docker-compose.yml
-version: '3.8'
 services:
   db:
-    image: postgres:16
+    image: postgis/postgis:15-3.3
+    platform: linux/amd64
+    container_name: mobauto-db
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: mobauto
+      POSTGRES_PASSWORD: mobauto
+      POSTGRES_DB: mobauto
+    ports:
+      - 2345:5432
     volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - "${DB_PORT}:5432"
-
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@mobauto.es
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5050:80"
+      - pg_data:/var/lib/postgresql/data
 
 volumes:
-  pgdata:
+  pg_data:
+    external: false
