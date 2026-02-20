@@ -4,6 +4,10 @@ SeeNode es una plataforma sencilla con precios economicos y PostgreSQL incluido.
 
 **Coste**: 7 dias de prueba gratis, despues $3/mes (app) + $1/mes (base de datos).
 
+El despliegue se hace en dos fases:
+- **Fase 1**: Desplegar la web (sin base de datos)
+- **Fase 2**: Crear la base de datos, conectarla y ejecutar las migraciones
+
 ---
 
 ## Requisitos
@@ -13,33 +17,35 @@ SeeNode es una plataforma sencilla con precios economicos y PostgreSQL incluido.
 
 ---
 
-## Paso 1 — Crear cuenta
+## FASE 1 — Desplegar la web
+
+### Paso 1 — Crear cuenta
 
 1. Ve a [seenode.com](https://seenode.com)
 2. Registrate (puedes usar GitHub)
 3. Tienes 7 dias de prueba gratis
 
-## Paso 2 — Crear el servicio web
+### Paso 2 — Crear el servicio web
 
 1. En el dashboard, click en "New" > "Web Service"
 2. Conecta tu cuenta de GitHub si no lo has hecho
 3. Autoriza SeeNode para acceder a tus repositorios
 4. Selecciona el repositorio `project-mobauto` y la rama `main`
 
-## Paso 3 — Configurar el servicio
+### Paso 3 — Configurar el servicio
 
-SeeNode detecta el proyecto automaticamente, pero ajusta estos valores:
+Ajusta estos valores:
 
 - **Name**: `mobauto`
 - **Root Directory**: dejar vacio (raiz del repositorio)
-- **Build Command**: `npm install && npm run build`
-- **Start Command**: `npx prisma migrate deploy && node .output/server/index.mjs`
+- **Build Command**: `npm install && npx prisma generate && npm run build`
+- **Start Command**: `node .output/server/index.mjs`
 
-> **Build Command**: debe incluir `npm install` porque SeeNode no instala las dependencias automaticamente. Sin esto, el build falla con `nuxt: not found`.
+> **Build Command**: incluye `npm install` (SeeNode no lo hace automaticamente) y `npx prisma generate` (genera el cliente de Prisma en `app/generated/prisma/`). Solo necesita los archivos del repo, no una base de datos.
 >
-> **Start Command**: las migraciones van aqui (no en el build) porque SeeNode inyecta las variables de entorno solo en tiempo de ejecucion.
+> **Start Command**: sin migraciones. Las migraciones se ejecutan manualmente una sola vez desde tu maquina (Fase 2).
 
-## Paso 4 — Configurar variables de entorno del servicio web
+### Paso 4 — Configurar variables de entorno
 
 En tu servicio web, ve a la seccion de variables de entorno y anade:
 
@@ -55,16 +61,21 @@ Para generar un `JWT_SECRET` seguro:
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-## Paso 5 — Primer deploy (sin base de datos)
+### Paso 5 — Primer deploy
 
 1. Click en "Create Web Service"
-2. SeeNode clonara el repo, instalara dependencias y hara build
+2. SeeNode clonara el repo, ejecutara el build y arrancara la app
 3. Puedes ver los logs en tiempo real
-4. La app estara online pero sin base de datos todavia
+4. En los logs deberias ver: `Listening on http://0.0.0.0:80`
+5. La app estara online, pero sin base de datos (el login y las citas no funcionaran todavia)
 
 > **Deploy automatico**: A partir de ahora, cada `git push` a `main` redespliega la app automaticamente.
 
-## Paso 6 — Crear la base de datos PostgreSQL
+---
+
+## FASE 2 — Conectar la base de datos
+
+### Paso 6 — Crear la base de datos PostgreSQL
 
 1. En el dashboard, click en "New" > "Database"
 2. Selecciona "PostgreSQL"
@@ -87,7 +98,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
    postgresql://db_xxxxxxxx:tu_password@up-de-fra1-postgresql-1.db.run-on-seenode.com:11550/db_xxxxxxxx
    ```
 
-## Paso 7 — Conectar la base de datos al servicio web
+### Paso 7 — Anadir DATABASE_URL al servicio web
 
 1. Ve a tu **Web Service** > pestana **Environment**
 2. Anade la variable:
@@ -101,9 +112,9 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
    git commit --allow-empty -m "connect production database" && git push
    ```
 
-## Paso 8 — Ejecutar migraciones y seed
+### Paso 8 — Ejecutar migraciones y seed desde local
 
-Desde tu maquina local:
+Esto crea las tablas en la base de datos y carga los datos iniciales (admin, servicios, horarios). Se hace una sola vez desde tu maquina.
 
 **1. Instala `dotenv-cli` si no lo tienes:**
 ```bash
@@ -114,7 +125,7 @@ npm install -g dotenv-cli
 ```
 DATABASE_URL="postgresql://db_xxxxxxxx:tu_password@up-de-fra1-postgresql-1.db.run-on-seenode.com:11550/db_xxxxxxxx"
 ```
-Sustituye con tus datos reales de SeeNode.
+Sustituye con tus datos reales.
 
 > **Este archivo NO debe subirse a GitHub.** Verifica que `.env.production` esta en tu `.gitignore`.
 
@@ -124,15 +135,13 @@ npx dotenv -e .env.production -- npx prisma migrate deploy
 npx dotenv -e .env.production -- npx prisma db seed
 ```
 
-Esto crea todas las tablas y carga los datos iniciales (admin, servicios, horarios).
-
-## Paso 9 — Verificar
+### Paso 9 — Verificar
 
 1. Abre la URL que SeeNode te ha asignado
 2. Prueba registro, login, reservar cita
 3. Entra como admin (`admin@mobauto.es` / `admin123`) y verifica el panel
 
-> **Dominio propio**: SeeNode tiene esta funcionalidad como "Coming Soon". Cuando este disponible, el proceso sera similar al de otros proveedores.
+> **Dominio propio**: SeeNode tiene esta funcionalidad como "Coming Soon".
 
 ---
 
