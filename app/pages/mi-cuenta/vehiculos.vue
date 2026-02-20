@@ -24,7 +24,6 @@
           </div>
         </q-card-section>
         <q-card-actions>
-          <q-btn flat color="primary" label="Ver historial" no-caps />
           <q-btn flat color="negative" label="Eliminar" no-caps
             @click="removeVehicle(vehicle.id)" />
         </q-card-actions>
@@ -45,7 +44,7 @@
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Cancelar" no-caps v-close-popup />
-          <q-btn color="primary" label="Guardar" no-caps @click="addVehicle" />
+          <q-btn color="primary" label="Guardar" no-caps :loading="saving" @click="addVehicle" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -56,28 +55,71 @@
 definePageMeta({ middleware: 'auth', layout: 'client' })
 useSeoMeta({ title: 'Mis Vehículos - Mobauto' })
 
-// Estado local (en el futuro vendrá del backend)
+const auth = useAuthStore()
+const $q = useQuasar()
+
 const vehicles = ref<Array<{
   id: string; brand: string; model: string; year: number; plate: string
 }>>([])
 
 const showDialog = ref(false)
+const saving = ref(false)
 const newVehicle = reactive({ brand: '', model: '', year: '', plate: '' })
 
-function addVehicle() {
-  vehicles.value.push({
-    id: crypto.randomUUID(),
-    brand: newVehicle.brand,
-    model: newVehicle.model,
-    year: parseInt(newVehicle.year) || 0,
-    plate: newVehicle.plate,
-  })
-  // Reset form
-  Object.assign(newVehicle, { brand: '', model: '', year: '', plate: '' })
-  showDialog.value = false
+async function loadVehicles() {
+  try {
+    const response = await $fetch<{ success: boolean; data: any[] }>('/api/vehicles', {
+      headers: { Authorization: `Bearer ${auth.token}` },
+    })
+    vehicles.value = response.data
+  } catch (err) {
+    console.error('Error cargando vehículos:', err)
+  }
+}
+
+async function addVehicle() {
+  if (!newVehicle.brand || !newVehicle.model || !newVehicle.year || !newVehicle.plate) return
+  saving.value = true
+  try {
+    const response = await $fetch<{ success: boolean; data: any }>('/api/vehicles', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${auth.token}` },
+      body: {
+        brand: newVehicle.brand,
+        model: newVehicle.model,
+        year: newVehicle.year,
+        plate: newVehicle.plate,
+      },
+    })
+    vehicles.value.push(response.data)
+    Object.assign(newVehicle, { brand: '', model: '', year: '', plate: '' })
+    showDialog.value = false
+  } catch (err) {
+    console.error('Error añadiendo vehículo:', err)
+  } finally {
+    saving.value = false
+  }
 }
 
 function removeVehicle(id: string) {
-  vehicles.value = vehicles.value.filter(v => v.id !== id)
+  $q.dialog({
+    title: 'Eliminar vehículo',
+    message: '¿Seguro que quieres eliminar este vehículo?',
+    cancel: { flat: true, label: 'Cancelar', noCaps: true },
+    ok: { color: 'negative', label: 'Eliminar', noCaps: true },
+    persistent: true,
+  }).onOk(async () => {
+    try {
+      await $fetch(`/api/vehicles/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${auth.token}` },
+      })
+      vehicles.value = vehicles.value.filter(v => v.id !== id)
+    } catch (err) {
+      console.error('Error eliminando vehículo:', err)
+    }
+  })
 }
+
+onMounted(loadVehicles)
 </script>

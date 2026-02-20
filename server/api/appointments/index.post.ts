@@ -5,6 +5,9 @@
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
 
+  // Detectar si hay un usuario logueado
+  const authUser = getUserFromEvent(event)
+
   const {
     customerName,
     customerEmail,
@@ -56,6 +59,7 @@ export default defineEventHandler(async (event) => {
 
   const appointment = await prisma.appointment.create({
     data: {
+      userId: authUser?.userId || null,
       customerName,
       customerEmail,
       customerPhone: customerPhone || null,

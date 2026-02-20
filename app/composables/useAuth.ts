@@ -13,11 +13,14 @@ export function useAuth() {
   const store = useAuthStore()
   const router = useRouter()
 
-  // Función de login que además redirige
+  // Función de login que además redirige según el rol
   async function login(email: string, password: string) {
     await store.login(email, password)
-    // Redirigir al dashboard del cliente tras login exitoso
-    await router.push('/mi-cuenta')
+    if (store.isAdmin) {
+      await router.push('/admin')
+    } else {
+      await router.push('/mi-cuenta')
+    }
   }
 
   // Función de registro que además redirige

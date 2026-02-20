@@ -37,13 +37,18 @@
 definePageMeta({ middleware: 'auth', layout: 'client' })
 useSeoMeta({ title: 'Mis Citas - Mobauto' })
 
-const { user } = useAuth()
+const auth = useAuthStore()
 const appointments = ref<any[]>([])
 
-// Cargar citas del usuario
 onMounted(async () => {
-  // TODO: endpoint real filtrado por usuario
-  // Por ahora, cargamos todas las citas (demo)
+  try {
+    const response = await $fetch('/api/appointments/my', {
+      headers: { Authorization: `Bearer ${auth.token}` },
+    })
+    appointments.value = response.data
+  } catch (err) {
+    console.error('Error cargando citas:', err)
+  }
 })
 
 function statusColor(status: string): string {

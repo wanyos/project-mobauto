@@ -27,12 +27,11 @@
         :columns="columns"
         row-key="id"
         flat
-        :pagination="{ rowsPerPage: 5 }"
+        :pagination="{ rowsPerPage: 10 }"
       >
-        <!-- Columna personalizada para el estado -->
         <template #body-cell-status="props">
           <q-td :props="props">
-            <q-badge :color="statusColor(props.value)" :label="props.value" />
+            <q-badge :color="statusColor(props.value)" :label="statusLabel(props.value)" />
           </q-td>
         </template>
       </q-table>
@@ -42,22 +41,16 @@
 
 <script setup lang="ts">
 definePageMeta({
-  middleware: 'admin',  // Solo admins pueden acceder
+  middleware: 'admin',
   layout: 'admin',
 })
 
 useSeoMeta({ title: 'Admin - Mobauto' })
 
-const metrics = [
-  { label: 'Citas hoy', value: '3', icon: 'event', color: 'primary' },
-  { label: 'Pendientes', value: '5', icon: 'pending', color: 'warning' },
-  { label: 'Completadas (mes)', value: '47', icon: 'check_circle', color: 'positive' },
-  { label: 'Clientes totales', value: '124', icon: 'people', color: 'info' },
-]
+const auth = useAuthStore()
 
-// Columnas de la tabla (configuración de q-table)
 const columns = [
-  { name: 'date', label: 'Fecha', field: 'scheduledDate', align: 'left' as const },
+  { name: 'date', label: 'Fecha', field: 'scheduledDate', align: 'left' as const, sortable: true },
   { name: 'time', label: 'Hora', field: 'scheduledTime', align: 'left' as const },
   { name: 'customer', label: 'Cliente', field: 'customerName', align: 'left' as const },
   { name: 'services', label: 'Servicios', field: (row: any) => row.services.join(', '), align: 'left' as const },
@@ -66,10 +59,35 @@ const columns = [
 
 const recentAppointments = ref<any[]>([])
 
-// Cargar citas
+const citasHoy = computed(() => {
+  const today = new Date().toISOString().split('T')[0]
+  return recentAppointments.value.filter(a => a.scheduledDate === today).length
+})
+
+const citasPendientes = computed(() =>
+  recentAppointments.value.filter(a => a.status === 'PENDING').length
+)
+
+const citasCompletadasMes = computed(() => {
+  const now = new Date()
+  const mesActual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  return recentAppointments.value.filter(
+    a => a.status === 'COMPLETED' && a.scheduledDate.startsWith(mesActual)
+  ).length
+})
+
+const metrics = computed(() => [
+  { label: 'Citas hoy', value: citasHoy.value, icon: 'event', color: 'primary' },
+  { label: 'Pendientes de confirmar', value: citasPendientes.value, icon: 'pending', color: 'warning' },
+  { label: 'Completadas (mes)', value: citasCompletadasMes.value, icon: 'check_circle', color: 'positive' },
+  { label: 'Total citas', value: recentAppointments.value.length, icon: 'list_alt', color: 'info' },
+])
+
 onMounted(async () => {
   try {
-    const response = await $fetch('/api/admin/appointments')
+    const response = await $fetch('/api/admin/appointments', {
+      headers: { Authorization: `Bearer ${auth.token}` },
+    })
     recentAppointments.value = response.data
   } catch (err) {
     console.error('Error al cargar citas:', err)
@@ -82,5 +100,13 @@ function statusColor(status: string): string {
     COMPLETED: 'positive', CANCELLED: 'negative',
   }
   return colors[status] || 'grey'
+}
+
+function statusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    PENDING: 'Pendiente', CONFIRMED: 'Confirmada', IN_PROGRESS: 'En curso',
+    COMPLETED: 'Completada', CANCELLED: 'Cancelada',
+  }
+  return labels[status] || status
 }
 </script>

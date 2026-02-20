@@ -34,9 +34,38 @@ definePageMeta({
 
 useSeoMeta({ title: 'Mi Cuenta - Mobauto' })
 
-const stats = [
-  { label: 'Próximas citas', value: '0', icon: 'event', color: 'primary' },
-  { label: 'Vehículos registrados', value: '0', icon: 'directions_car', color: 'secondary' },
-  { label: 'Servicios realizados', value: '0', icon: 'check_circle', color: 'positive' },
-]
+const auth = useAuthStore()
+
+const proximasCitas = ref(0)
+const serviciosRealizados = ref(0)
+const vehiculosRegistrados = ref(0)
+
+onMounted(async () => {
+  try {
+    const [appointmentsRes, vehiclesRes] = await Promise.all([
+      $fetch('/api/appointments/my', {
+        headers: { Authorization: `Bearer ${auth.token}` },
+      }),
+      $fetch('/api/vehicles', {
+        headers: { Authorization: `Bearer ${auth.token}` },
+      }),
+    ])
+    const appointments = appointmentsRes.data
+    proximasCitas.value = appointments.filter(
+      (a: any) => ['PENDING', 'CONFIRMED'].includes(a.status)
+    ).length
+    serviciosRealizados.value = appointments.filter(
+      (a: any) => a.status === 'COMPLETED'
+    ).length
+    vehiculosRegistrados.value = vehiclesRes.data.length
+  } catch (err) {
+    console.error('Error cargando stats:', err)
+  }
+})
+
+const stats = computed(() => [
+  { label: 'Próximas citas', value: proximasCitas.value, icon: 'event', color: 'primary' },
+  { label: 'Vehículos registrados', value: vehiculosRegistrados.value, icon: 'directions_car', color: 'secondary' },
+  { label: 'Servicios realizados', value: serviciosRealizados.value, icon: 'check_circle', color: 'positive' },
+])
 </script>

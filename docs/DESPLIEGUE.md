@@ -267,32 +267,73 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 > git commit --allow-empty -m "trigger redeploy" && git push
 > ```
 
-### Paso 6 — Anadir PostgreSQL (cuando se implemente Prisma)
+### Paso 6 — Anadir PostgreSQL
 
 1. En el dashboard, click en "New" > "Database"
 2. Selecciona "PostgreSQL"
 3. Ponle nombre: `mobauto-db`
 4. **Importante**: Selecciona la misma region que tu servicio web
-5. SeeNode te dara un **connection string**, copialo
-6. Anade la variable de entorno `DATABASE_URL` con el connection string
+5. SeeNode mostrara los parametros de conexion individuales (no un connection string listo):
+   ```
+   database = db_xxxxxxxx
+   username = db_xxxxxxxx
+   password = **********
+   host     = up-de-fra1-postgresql-1.db.run-on-seenode.com
+   port     = 11550
+   ```
+6. Con esos datos, construye el `DATABASE_URL` manualmente con este formato:
+   ```
+   postgresql://USERNAME:PASSWORD@HOST:PORT/DATABASE
+   ```
+   Ejemplo real:
+   ```
+   postgresql://db_kmkyzrebpxos:tu_password@up-de-fra1-postgresql-1.db.run-on-seenode.com:11550/db_kmkyzrebpxos
+   ```
 
+### Paso 7 — Conectar la base de datos al servicio web
 
-### Paso 7 — Ejecutar migraciones
+1. Ve a tu **Web Service** (no a la database) > pestana **Environment**
+2. Anade la variable:
 
-Desde tu maquina local, apuntando a la BD de SeeNode:
+| Variable | Valor |
+|---|---|
+| `DATABASE_URL` | El connection string construido en el paso anterior |
 
+3. Guarda y fuerza un redeploy para que la app coja la nueva variable:
+   ```bash
+   git commit --allow-empty -m "connect production database" && git push
+   ```
+
+### Paso 8 — Ejecutar migraciones
+
+Desde tu maquina local (en la raiz del proyecto `project-mobauto`):
+
+**1. Instala `dotenv-cli` si no lo tienes:**
 ```bash
-# Guardar el connection string de SeeNode
-echo 'DATABASE_URL="postgresql://user:pass@host:5432/mobauto"' > .env.production
+npm install -g dotenv-cli
+```
 
-# Ejecutar migraciones
+**2. Crea el archivo `.env.production` en la raiz del proyecto.**
+
+Puedes crearlo a mano desde VS Code: click derecho en el explorador de archivos > "New File" > `.env.production`, y pega dentro:
+```
+DATABASE_URL="postgresql://db_xxxxxxxx:tu_password@up-de-fra1-postgresql-1.db.run-on-seenode.com:11550/db_xxxxxxxx"
+```
+Sustituye los valores con los datos reales de tu base de datos de SeeNode.
+
+> **Este archivo NO debe subirse a GitHub.** Verifica que `.env.production` esta en tu `.gitignore`.
+
+**3. Ejecuta las migraciones y el seed:**
+```bash
 npx dotenv -e .env.production -- npx prisma migrate deploy
-
-# Seed
 npx dotenv -e .env.production -- npx prisma db seed
 ```
 
-### Paso 8 — Verificar
+Esto crea todas las tablas en la base de datos de SeeNode y carga los datos iniciales (servicios, horarios, etc.).
+
+**4. Una vez terminado, puedes borrar `.env.production`** (o dejarlo, ya esta en `.gitignore`).
+
+### Paso 9 — Verificar
 
 1. Abre la URL que SeeNode te ha asignado
 2. Prueba la app completa

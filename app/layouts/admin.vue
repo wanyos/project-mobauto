@@ -55,6 +55,5 @@ const adminLinks = [
   { to: '/admin', icon: 'dashboard', label: 'Dashboard' },
   { to: '/admin/citas', icon: 'event', label: 'Citas' },
   { to: '/admin/clientes', icon: 'people', label: 'Clientes' },
-  { to: '/admin/servicios', icon: 'build', label: 'Servicios' },
 ]
 </script>

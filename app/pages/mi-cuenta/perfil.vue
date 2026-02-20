@@ -22,20 +22,34 @@
 definePageMeta({ middleware: 'auth', layout: 'client' })
 useSeoMeta({ title: 'Mi Perfil - Mobauto' })
 
-const { user } = useAuth()
+const auth = useAuthStore()
 const saving = ref(false)
 
 const profile = reactive({
-  email: user.value?.email || '',
-  firstName: '',
-  lastName: '',
-  phone: '',
+  email: auth.user?.email ?? '',
+  firstName: auth.user?.firstName ?? '',
+  lastName: auth.user?.lastName ?? '',
+  phone: auth.user?.phone ?? '',
 })
 
 async function saveProfile() {
   saving.value = true
-  // TODO: endpoint real para actualizar perfil
-  await new Promise(resolve => setTimeout(resolve, 1000)) // Simular delay
-  saving.value = false
+  try {
+    const response = await $fetch<{ success: boolean; data: any }>('/api/auth/me', {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${auth.token}` },
+      body: {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        phone: profile.phone,
+      },
+    })
+    // Actualizar el store con los nuevos datos
+    auth.user = response.data
+  } catch (err) {
+    console.error('Error guardando perfil:', err)
+  } finally {
+    saving.value = false
+  }
 }
 </script>

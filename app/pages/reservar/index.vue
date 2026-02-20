@@ -154,6 +154,8 @@ const loading = ref(false)
 const error = ref('')
 const showSuccess = ref(false)
 
+const auth = useAuthStore()
+
 // Obtener servicio preseleccionado de la URL (?servicio=cambio-aceite)
 const route = useRoute()
 const preselectedService = route.query.servicio as string
@@ -166,9 +168,9 @@ const form = reactive({
   vehiclePlate: '',
   scheduledDate: '',
   scheduledTime: '',
-  customerName: '',
-  customerEmail: '',
-  customerPhone: '',
+  customerName: auth.user ? `${auth.user.firstName} ${auth.user.lastName}` : '',
+  customerEmail: auth.user?.email ?? '',
+  customerPhone: auth.user?.phone ?? '',
   notes: '',
 })
 
@@ -191,6 +193,7 @@ async function submitBooking() {
   try {
     await $fetch('/api/appointments', {
       method: 'POST',
+      headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : {},
       body: {
         ...form,
         vehicleYear: parseInt(form.vehicleYear) || 0,
