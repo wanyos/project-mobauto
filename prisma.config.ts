@@ -1,7 +1,14 @@
 import { config } from 'dotenv'
+import { existsSync } from 'fs'
 import { defineConfig } from 'prisma/config'
 
-config({ path: '.env' })
+// Si existe .env.production (migraciones contra produccion), usarlo.
+// Si no, usar .env (desarrollo local).
+if (existsSync('.env.production')) {
+  config({ path: '.env.production', override: true })
+} else {
+  config({ path: '.env' })
+}
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',

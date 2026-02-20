@@ -116,12 +116,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 Esto crea las tablas en la base de datos y carga los datos iniciales (admin, servicios, horarios). Se hace una sola vez desde tu maquina.
 
-**1. Instala `dotenv-cli` si no lo tienes:**
-```bash
-npm install -g dotenv-cli
-```
-
-**2. Crea el archivo `.env.production` en la raiz del proyecto** (en VS Code: click derecho > "New File"):
+**1. Crea el archivo `.env.production` en la raiz del proyecto** (en VS Code: click derecho > "New File"):
 ```
 DATABASE_URL="postgresql://db_xxxxxxxx:tu_password@up-de-fra1-postgresql-1.db.run-on-seenode.com:11550/db_xxxxxxxx"
 ```
@@ -129,11 +124,13 @@ Sustituye con tus datos reales.
 
 > **Este archivo NO debe subirse a GitHub.** Verifica que `.env.production` esta en tu `.gitignore`.
 
-**3. Ejecuta las migraciones y el seed:**
+**2. Ejecuta las migraciones y el seed:**
 ```bash
-npx dotenv -e .env.production -- npx prisma migrate deploy
-npx dotenv -e .env.production -- npx prisma db seed
+npx prisma migrate deploy
+npx prisma db seed
 ```
+
+> `prisma.config.ts` detecta automaticamente `.env.production` cuando existe y lo usa en lugar de `.env`. No hace falta ningun comando especial.
 
 ### Paso 9 — Verificar
 
