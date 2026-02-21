@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 useSeoMeta({
-  title: 'Blog - Mobauto',
+  title: 'Blog - MobautoRomero',
   description: 'Consejos y guías sobre mantenimiento y cuidado de tu vehículo.',
 })
 </script>

@@ -119,9 +119,9 @@ const service = computed(() => data.value?.data ?? null)
 
 // ─── SEO dinámico ───
 useSeoMeta({
-  title: () => service.value ? `${service.value.name} - Mobauto Taller Mecánico` : 'Servicio no encontrado - Mobauto',
+  title: () => service.value ? `${service.value.name} - MobautoRomero Taller Mecánico` : 'Servicio no encontrado - MobautoRomero',
   description: () => service.value?.fullDescription?.slice(0, 160) ?? '',
-  ogTitle: () => service.value ? `${service.value.name} - Mobauto` : '',
+  ogTitle: () => service.value ? `${service.value.name} - MobautoRomero` : '',
   ogDescription: () => service.value?.shortDescription ?? '',
 })
 

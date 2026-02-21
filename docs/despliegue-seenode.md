@@ -96,6 +96,8 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
    Ejemplo:
    ```
    postgresql://db_xxxxxxxx:tu_password@up-de-fra1-postgresql-1.db.run-on-seenode.com:11550/db_xxxxxxxx
+
+   Es mejor dejar la password por defecto que ofrece seenode, al cambiarla dio problemas de conexión
    ```
 
 ### Paso 7 — Anadir DATABASE_URL al servicio web
@@ -126,7 +128,7 @@ Sustituye con tus datos reales.
 
 **2. Ejecuta las migraciones y el seed:**
 ```bash
-npx prisma migrate deploy
+npx dotenv -e .env.production -- npx prisma migrate deplo
 npx prisma db seed
 ```
 

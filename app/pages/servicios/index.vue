@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
 useSeoMeta({
-  title: 'Servicios — Chapa, Pintura, Cristales y Mecánica | Mobauto Humanes de Madrid',
+  title: 'Servicios — Chapa, Pintura, Cristales y Mecánica | MobautoRomero Humanes de Madrid',
   description: 'Servicios de chapa y pintura, reparación de cristales, mecánica general, mantenimiento y pre-ITV en Humanes de Madrid. Presupuesto sin compromiso.',
 })
 

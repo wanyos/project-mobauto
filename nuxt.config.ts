@@ -21,7 +21,7 @@ export default defineNuxtConfig({
   ],
 
   site: {
-    url: "https://mobauto.es", // Tu dominio
+    url: "https://mobautoromero.es", // Tu dominio
   },
 
   // ─── CONFIGURACIÓN DE QUASAR ───
@@ -49,14 +49,14 @@ export default defineNuxtConfig({
     head: {
       // Título por defecto (se puede sobrescribir por página)
       title:
-        "Mobauto - Taller de Chapa, Pintura y Mecánica en Humanes de Madrid",
+        "mobautoromero",
       meta: [
         { charset: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
         {
           name: "description",
           content:
-            "Mobauto — Taller de chapa, pintura y reparación de vehículos en Humanes de Madrid. Más de 10 años de experiencia. Presupuesto sin compromiso. Tel: 916 04 12 62",
+            "MobautoRomero — Taller de chapa, pintura y reparación de vehículos en Humanes de Madrid. Más de 10 años de experiencia. Presupuesto sin compromiso. Tel: 916 04 12 62",
         },
       ],
       // Fuentes: Roboto (texto general) + Montserrat (títulos, más impacto)

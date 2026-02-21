@@ -37,7 +37,7 @@
 
 <script setup lang="ts">
 definePageMeta({ middleware: 'admin', layout: 'admin' })
-useSeoMeta({ title: 'Clientes - Admin Mobauto' })
+useSeoMeta({ title: 'Clientes - Admin MobautoRomero' })
 
 const auth = useAuthStore()
 

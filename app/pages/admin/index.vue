@@ -28,11 +28,52 @@
         row-key="id"
         flat
         :pagination="{ rowsPerPage: 10 }"
+        :grid="$q.screen.lt.md"
       >
+        <!-- Vista escritorio: badge de estado en columna -->
         <template #body-cell-status="props">
           <q-td :props="props">
             <q-badge :color="statusColor(props.value)" :label="statusLabel(props.value)" />
           </q-td>
+        </template>
+
+        <!-- Vista móvil: tarjeta personalizada por cita -->
+        <template #item="props">
+          <div class="q-pa-xs col-12">
+            <q-card flat bordered class="rounded-lg">
+              <q-card-section class="q-pb-xs">
+                <!-- Cabecera: cliente + badge estado -->
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <q-icon name="person" color="primary" size="18px" class="shrink-0" />
+                    <span class="font-bold text-base truncate">{{ props.row.customerName }}</span>
+                  </div>
+                  <q-badge
+                    :color="statusColor(props.row.status)"
+                    :label="statusLabel(props.row.status)"
+                    class="shrink-0"
+                  />
+                </div>
+              </q-card-section>
+
+              <q-separator />
+
+              <q-card-section class="q-pt-sm q-pb-sm">
+                <!-- Fecha y hora -->
+                <div class="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                  <q-icon name="event" size="16px" class="text-gray-400" />
+                  <span>{{ props.row.scheduledDate }}</span>
+                  <q-icon name="schedule" size="16px" class="text-gray-400 ml-2" />
+                  <span>{{ props.row.scheduledTime }}</span>
+                </div>
+                <!-- Servicios -->
+                <div class="flex items-start gap-2 text-sm text-gray-600">
+                  <q-icon name="build" size="16px" class="text-gray-400 mt-0.5 shrink-0" />
+                  <span class="leading-snug">{{ props.row.services.join(', ') }}</span>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
         </template>
       </q-table>
     </q-card>
@@ -45,8 +86,9 @@ definePageMeta({
   layout: 'admin',
 })
 
-useSeoMeta({ title: 'Admin - Mobauto' })
+useSeoMeta({ title: 'Admin - MobautoRomero' })
 
+const $q = useQuasar()
 const auth = useAuthStore()
 
 const columns = [

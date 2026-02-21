@@ -121,7 +121,7 @@
 
 <script setup lang="ts">
 useSeoMeta({
-  title: 'Crear Cuenta - Mobauto',
+  title: 'Crear Cuenta - MobautoRomero',
   description: 'Regístrate en Mobauto para gestionar tus citas y vehículos.',
 })
 

@@ -32,7 +32,7 @@ definePageMeta({
   layout: 'client',
 })
 
-useSeoMeta({ title: 'Mi Cuenta - Mobauto' })
+useSeoMeta({ title: 'Mi Cuenta - MobautoRomero' })
 
 const auth = useAuthStore()
 

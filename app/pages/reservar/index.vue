@@ -144,7 +144,7 @@
 
 <script setup lang="ts">
 useSeoMeta({
-  title: 'Reservar Cita Online - Mobauto',
+  title: 'Reservar Cita Online - MobautoRomero',
   description: 'Reserva tu cita en nuestro taller mecánico de forma rápida y sencilla.',
 })
 

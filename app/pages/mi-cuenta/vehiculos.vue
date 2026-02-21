@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth', layout: 'client' })
-useSeoMeta({ title: 'Mis Vehículos - Mobauto' })
+useSeoMeta({ title: 'Mis Vehículos - MobautoRomero' })
 
 const auth = useAuthStore()
 const $q = useQuasar()

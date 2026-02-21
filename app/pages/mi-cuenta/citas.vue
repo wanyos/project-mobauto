@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth', layout: 'client' })
-useSeoMeta({ title: 'Mis Citas - Mobauto' })
+useSeoMeta({ title: 'Mis Citas - MobautoRomero' })
 
 const auth = useAuthStore()
 const appointments = ref<any[]>([])

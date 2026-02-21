@@ -92,7 +92,7 @@
 <script setup lang="ts">
 // ─── SEO ───
 useSeoMeta({
-  title: 'Iniciar Sesión - Mobauto',
+  title: 'Iniciar Sesión - MobautoRomero',
   description: 'Accede a tu cuenta de Mobauto para gestionar tus citas y vehículos.',
 })
 

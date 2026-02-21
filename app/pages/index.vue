@@ -153,7 +153,7 @@
 <script setup lang="ts">
 // ─── SEO ───
 useSeoMeta({
-  title: 'Mobauto — Taller de Chapa, Pintura y Mecánica en Humanes de Madrid',
+  title: 'MobautoRomero',
   description: 'Mobauto: taller de chapa, pintura y reparación en Humanes de Madrid. +10 años de experiencia, 4.8★ en Google. Presupuesto sin compromiso. Tel: 916 04 12 62',
   ogTitle: 'Mobauto — Taller en Humanes de Madrid',
   ogDescription: 'Chapa, pintura y reparación de vehículos. Presupuesto sin compromiso.',

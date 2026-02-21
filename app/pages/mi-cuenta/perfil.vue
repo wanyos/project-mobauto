@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth', layout: 'client' })
-useSeoMeta({ title: 'Mi Perfil - Mobauto' })
+useSeoMeta({ title: 'Mi Perfil - MobautoRomero' })
 
 const auth = useAuthStore()
 const saving = ref(false)
