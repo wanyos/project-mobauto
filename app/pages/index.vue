@@ -124,8 +124,8 @@
               <div class="flex items-center gap-4">
                 <q-icon name="schedule" size="24px" color="primary" />
                 <div>
-                  <p>Lunes a Viernes: 8:00–14:00 / 15:30–19:00</p>
-                  <p class="text-sm text-gray-400">Sábados y domingos: Cerrado</p>
+                  <p>{{ diasLaboralesTexto }}: {{ horarioTexto }}</p>
+                  <p v-if="diasCerradoTexto" class="text-sm text-gray-400">{{ diasCerradoTexto }}</p>
                 </div>
               </div>
             </div>
@@ -151,6 +151,44 @@
 </template>
 
 <script setup lang="ts">
+import { DIAS_SEMANA } from '~/utils/businessConstants'
+
+// ─── Horario dinámico (desde la BD vía composable) ───
+const { config, cargarConfig } = useBusinessConfig()
+onMounted(() => { cargarConfig() })
+
+// Nombres en inglés para Schema.org JSON-LD
+const DAY_NAMES_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+const diasLaboralesTexto = computed(() => {
+  const workDays = [...config.value.workDays].sort((a, b) => (a === 0 ? 7 : a) - (b === 0 ? 7 : b))
+  const nombres = workDays.map(d => DIAS_SEMANA.find(ds => ds.value === d)?.label ?? '')
+    .filter(Boolean)
+  if (nombres.length === 0) return ''
+  if (nombres.length <= 2) return nombres.join(' y ')
+  // Comprobar si son consecutivos (Lunes a Viernes, etc.)
+  const esConsecutivo = workDays.every((d, i) => {
+    if (i === 0) return true
+    const prev = workDays[i - 1] ?? 0
+    return (d === 0 ? 7 : d) - (prev === 0 ? 7 : prev) === 1
+  })
+  if (esConsecutivo) return `${nombres[0]} a ${nombres[nombres.length - 1]}`
+  return nombres.join(', ')
+})
+
+const horarioTexto = computed(() => {
+  const { morningOpen, morningClose, afternoonEnabled, afternoonOpen, afternoonClose } = config.value
+  let texto = `${morningOpen}–${morningClose}`
+  if (afternoonEnabled) texto += ` / ${afternoonOpen}–${afternoonClose}`
+  return texto
+})
+
+const diasCerradoTexto = computed(() => {
+  const cerrados = DIAS_SEMANA.filter(d => !config.value.workDays.includes(d.value))
+  if (cerrados.length === 0) return ''
+  return cerrados.map(d => d.label).join(' y ') + ': Cerrado'
+})
+
 // ─── SEO ───
 useSeoMeta({
   title: 'MobautoRomero',
@@ -163,46 +201,52 @@ useSeoMeta({
 // ─── Structured Data (JSON-LD) para SEO ───
 // Esto le dice a Google "somos un negocio de automoción en esta dirección"
 // Aparecerá como rich snippet en los resultados de búsqueda.
+const jsonLd = computed(() => {
+  const dayOfWeek = config.value.workDays.map(d => DAY_NAMES_EN[d])
+  const specs = [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek,
+      opens: config.value.morningOpen,
+      closes: config.value.morningClose,
+    },
+    ...(config.value.afternoonEnabled ? [{
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek,
+      opens: config.value.afternoonOpen,
+      closes: config.value.afternoonClose,
+    }] : []),
+  ]
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'AutoBodyShop',
+    name: 'Mobauto',
+    description: 'Taller de chapa, pintura y reparación de vehículos en Humanes de Madrid',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'C. del Álamo, 44',
+      addressLocality: 'Humanes de Madrid',
+      addressRegion: 'Madrid',
+      postalCode: '28970',
+      addressCountry: 'ES',
+    },
+    telephone: '+34916041262',
+    openingHoursSpecification: specs,
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      reviewCount: '58',
+    },
+    priceRange: '€€',
+    url: 'https://mobautoromero.es',
+  }
+})
+
 useHead({
   script: [
     {
       type: 'application/ld+json',
-      innerHTML: JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'AutoBodyShop',  // Tipo más específico para chapa y pintura
-        name: 'Mobauto',
-        description: 'Taller de chapa, pintura y reparación de vehículos en Humanes de Madrid',
-        address: {
-          '@type': 'PostalAddress',
-          streetAddress: 'C. del Álamo, 44',
-          addressLocality: 'Humanes de Madrid',
-          addressRegion: 'Madrid',
-          postalCode: '28970',
-          addressCountry: 'ES',
-        },
-        telephone: '+34916041262',
-        openingHoursSpecification: [
-          {
-            '@type': 'OpeningHoursSpecification',
-            dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-            opens: '08:00',
-            closes: '14:00',
-          },
-          {
-            '@type': 'OpeningHoursSpecification',
-            dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-            opens: '15:30',
-            closes: '19:00',
-          },
-        ],
-        aggregateRating: {
-          '@type': 'AggregateRating',
-          ratingValue: '4.8',
-          reviewCount: '58',
-        },
-        priceRange: '€€',
-        url: 'https://mobauto.es',
-      }),
+      innerHTML: computed(() => JSON.stringify(jsonLd.value)),
     },
   ],
 })

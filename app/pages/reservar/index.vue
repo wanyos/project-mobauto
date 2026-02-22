@@ -15,16 +15,53 @@
       <!-- ─── PASO 1: Seleccionar servicios ─── -->
       <q-step :name="1" title="Servicios" icon="build" :done="step > 1">
         <p class="text-gray-600 mb-4">Selecciona los servicios que necesitas:</p>
-        <div class="space-y-2">
-          <q-checkbox
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <q-card
             v-for="service in availableServices"
             :key="service.slug"
-            v-model="form.services"
-            :val="service.slug"
-            :label="`${service.name} — ${service.priceRange}`"
-          />
+            flat
+            bordered
+            class="cursor-pointer transition-all"
+            :class="form.services.includes(service.slug)
+              ? 'border-2 border-blue-500 bg-blue-50/50'
+              : 'border hover:border-gray-400'"
+            @click="toggleService(service.slug)"
+          >
+            <q-card-section class="flex items-start gap-3 py-3 px-4">
+              <q-icon
+                :name="service.icon"
+                size="28px"
+                :color="form.services.includes(service.slug) ? 'primary' : 'grey-6'"
+                class="mt-0.5"
+              />
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-semibold text-sm leading-tight">{{ service.name }}</span>
+                  <q-icon
+                    v-if="form.services.includes(service.slug)"
+                    name="check_circle"
+                    color="primary"
+                    size="20px"
+                  />
+                </div>
+                <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">{{ service.shortDescription }}</p>
+                <q-badge
+                  :color="form.services.includes(service.slug) ? 'primary' : 'grey-4'"
+                  :text-color="form.services.includes(service.slug) ? 'white' : 'grey-8'"
+                  class="mt-1.5"
+                  :label="service.priceRange"
+                />
+              </div>
+            </q-card-section>
+          </q-card>
         </div>
-        <q-stepper-navigation>
+
+        <p v-if="form.services.length > 0" class="text-sm text-primary mt-3 font-medium">
+          {{ form.services.length }} servicio{{ form.services.length > 1 ? 's' : '' }} seleccionado{{ form.services.length > 1 ? 's' : '' }}
+        </p>
+
+        <q-stepper-navigation class="mt-4">
           <q-btn color="primary" label="Siguiente" no-caps
             :disable="form.services.length === 0"
             @click="step = 2" />
@@ -176,6 +213,13 @@ const form = reactive({
 
 const { data: servicesData } = await useFetch('/api/services')
 const availableServices = computed(() => servicesData.value?.data ?? [])
+
+// Toggle de selección de servicio (para las tarjetas clickables)
+function toggleService(slug: string) {
+  const idx = form.services.indexOf(slug)
+  if (idx >= 0) form.services.splice(idx, 1)
+  else form.services.push(slug)
+}
 
 // Nombres de los servicios seleccionados (para el resumen)
 const selectedServiceNames = computed(() => {

@@ -2,31 +2,7 @@
 // ─── GET /api/appointments/slots?date=2026-03-15 ───
 // Devuelve los horarios disponibles para una fecha.
 
-// Horarios del taller — modificar aquí para cambiar horarios
-const BUSINESS_HOURS = {
-  morningOpen: 8,
-  morningClose: 14,
-  afternoonOpen: 15, // 15:30
-  afternoonClose: 19,
-  slotMinutes: 30,
-  workDays: [1, 2, 3, 4, 5], // Lunes a Viernes
-}
-
-function generateAllSlots(): string[] {
-  const slots: string[] = []
-  for (let h = BUSINESS_HOURS.morningOpen; h < BUSINESS_HOURS.morningClose; h++) {
-    for (let m = 0; m < 60; m += BUSINESS_HOURS.slotMinutes) {
-      slots.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`)
-    }
-  }
-  for (let h = BUSINESS_HOURS.afternoonOpen; h < BUSINESS_HOURS.afternoonClose; h++) {
-    const startMin = h === 15 ? 30 : 0
-    for (let m = startMin; m < 60; m += BUSINESS_HOURS.slotMinutes) {
-      slots.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`)
-    }
-  }
-  return slots
-}
+import { getBusinessConfig, generateSlots } from '../../utils/businessConfig'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -39,9 +15,11 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Verificar que es día laboral
+  const config = await getBusinessConfig()
+
+  // Verificar que es día laboral según la configuración de la BD
   const dayOfWeek = new Date(date).getDay()
-  if (!BUSINESS_HOURS.workDays.includes(dayOfWeek)) {
+  if (!config.workDays.includes(dayOfWeek)) {
     return { success: true, data: { date, slots: [] } }
   }
 
@@ -55,7 +33,7 @@ export default defineEventHandler(async (event) => {
   })
 
   const bookedTimes = booked.map((a) => a.scheduledTime)
-  const slots = generateAllSlots().filter((s) => !bookedTimes.includes(s))
+  const slots = generateSlots(config).filter((s) => !bookedTimes.includes(s))
 
   return { success: true, data: { date, slots } }
 })

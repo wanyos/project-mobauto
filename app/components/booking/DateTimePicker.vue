@@ -41,6 +41,8 @@
 </template>
 
 <script setup lang="ts">
+import { useBusinessConfig } from '~/composables/useBusinessConfig'
+
 // ─── Props y Emits ───
 // emit() permite enviar datos del hijo al padre.
 // Es lo contrario de props (padre → hijo). Emit va hijo → padre.
@@ -48,6 +50,11 @@ const emit = defineEmits<{
   (e: 'update:date', value: string): void
   (e: 'update:time', value: string): void
 }>()
+
+const { esDiaLaboral, cargarConfig } = useBusinessConfig()
+
+// Cargar config del taller al montar (días laborables, etc.)
+onMounted(() => { cargarConfig() })
 
 const selectedDate = ref('')
 const selectedTime = ref('')
@@ -65,9 +72,9 @@ function dateOptions(date: string): boolean {
   // No permitir fechas pasadas
   if (d < today) return false
 
-  // No permitir fines de semana (0=domingo, 6=sábado)
+  // Bloquear días no laborables según la configuración del admin
   const day = d.getDay()
-  if (day === 0 || day === 6) return false
+  if (!esDiaLaboral(day)) return false
 
   return true
 }
