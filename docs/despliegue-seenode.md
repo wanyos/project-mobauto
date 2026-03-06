@@ -128,7 +128,7 @@ Sustituye con tus datos reales.
 
 **2. Ejecuta las migraciones y el seed:**
 ```bash
-npx dotenv -e .env.production -- npx prisma migrate deplo
+npx dotenv -e .env.production -- npx prisma migrate deploy
 npx prisma db seed
 ```
 

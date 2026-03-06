@@ -44,14 +44,14 @@ Crear una página en el panel de administración para gestionar parámetros del 
 - `app/layouts/admin.vue` → añadir enlace "Configuración" al sidebar
 
 **Pasos de implementación:**
-1. [ ] Verificar/crear modelo `BusinessConfig` en Prisma (clave-valor)
-2. [ ] Ejecutar migración de BD si es necesario
-3. [ ] Crear endpoint `GET /api/admin/config`
-4. [ ] Crear endpoint `POST /api/admin/config`
-5. [ ] Modificar `slots.get.ts` para leer horarios de BD
-6. [ ] Modificar `DateTimePicker.vue` para leer días laborables de API
-7. [ ] Crear página `admin/configuracion.vue` con formulario
-8. [ ] Añadir enlace al sidebar del admin
+1. [x] Verificar/crear modelo `BusinessConfig` en Prisma (clave-valor)
+2. [x] Ejecutar migración de BD si es necesario
+3. [x] Crear endpoint `GET /api/admin/config`
+4. [x] Crear endpoint `POST /api/admin/config`
+5. [x] Modificar `slots.get.ts` para leer horarios de BD
+6. [x] Modificar `DateTimePicker.vue` para leer días laborables de API
+7. [x] Crear página `admin/configuracion.vue` con formulario
+8. [x] Añadir enlace al sidebar del admin
 
 ---
 
