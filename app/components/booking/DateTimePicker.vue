@@ -43,6 +43,8 @@
 <script setup lang="ts">
 import { useBusinessConfig } from '~/composables/useBusinessConfig'
 
+const $q = useQuasar()
+
 // ─── Props y Emits ───
 // emit() permite enviar datos del hijo al padre.
 // Es lo contrario de props (padre → hijo). Emit va hijo → padre.
@@ -96,6 +98,7 @@ watch(selectedDate, async (newDate) => {
     emit('update:date', formattedDate)
   } catch (err) {
     console.error('Error al cargar slots:', err)
+    $q.notify({ type: 'negative', message: 'Error al cargar los horarios disponibles' })
     slots.value = []
   } finally {
     loadingSlots.value = false

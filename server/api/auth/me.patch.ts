@@ -3,32 +3,33 @@
 // Actualiza los datos del usuario autenticado (nombre, apellidos, teléfono).
 
 export default defineEventHandler(async (event) => {
-  const authUser = getUserFromEvent(event)
+  const authUser = requireAuth(event)
 
-  if (!authUser) {
-    throw createError({ statusCode: 401, statusMessage: 'No autenticado' })
-  }
+  const { firstName, lastName, phone } = validateBody(updateProfileSchema, await readBody(event))
 
-  const { firstName, lastName, phone } = await readBody(event)
+  try {
+    const user = await prisma.user.update({
+      where: { id: authUser.userId },
+      data: {
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
+        phone: phone ?? null,
+      },
+    })
 
-  const user = await prisma.user.update({
-    where: { id: authUser.userId },
-    data: {
-      firstName: firstName || undefined,
-      lastName: lastName || undefined,
-      phone: phone || null,
-    },
-  })
-
-  return {
-    success: true,
-    data: {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      phone: user.phone,
-    },
+    return {
+      success: true,
+      data: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+      },
+    }
+  } catch (error) {
+    console.error('Error al actualizar perfil:', error)
+    throw createError({ statusCode: 500, statusMessage: 'Error al actualizar el perfil' })
   }
 })

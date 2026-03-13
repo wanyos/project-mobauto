@@ -5,9 +5,12 @@
 import { getBusinessConfig } from '../../utils/businessConfig'
 
 export default defineEventHandler(async (event) => {
-  const authData = getUserFromEvent(event)
-  if (!authData) throw createError({ statusCode: 401, statusMessage: 'No autenticado' })
-  if (authData.role !== 'ADMIN') throw createError({ statusCode: 403, statusMessage: 'No autorizado' })
+  requireAdmin(event)
 
-  return { success: true, data: await getBusinessConfig() }
+  try {
+    return { success: true, data: await getBusinessConfig() }
+  } catch (error) {
+    console.error('Error al obtener configuración:', error)
+    throw createError({ statusCode: 500, statusMessage: 'Error al obtener la configuración' })
+  }
 })

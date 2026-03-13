@@ -7,7 +7,7 @@
           Chapa, pintura y mecánica en Humanes de Madrid
         </h1>
         <p class="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
-          Más de 10 años cuidando tu vehículo. Diagnóstico preciso,
+          Más de 20 años cuidando tu vehículo. Diagnóstico preciso,
           presupuesto sin compromiso y la calidad que nos avala.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
@@ -27,7 +27,7 @@
             <p class="text-sm">Opiniones de clientes</p>
           </div>
           <div class="text-center">
-            <p class="text-3xl font-bold text-white">+10</p>
+            <p class="text-3xl font-bold text-white">+20</p>
             <p class="text-sm">Años de experiencia</p>
           </div>
         </div>

@@ -195,10 +195,10 @@ const auth = useAuthStore()
 
 // Obtener servicio preseleccionado de la URL (?servicio=cambio-aceite)
 const route = useRoute()
-const preselectedService = route.query.servicio as string
+const preselectedService = computed(() => route.query.servicio as string)
 
 const form = reactive({
-  services: preselectedService ? [preselectedService] : [] as string[],
+  services: preselectedService.value ? [preselectedService.value] : [] as string[],
   vehicleBrand: '',
   vehicleModel: '',
   vehicleYear: '',
@@ -224,9 +224,20 @@ function toggleService(slug: string) {
 // Nombres de los servicios seleccionados (para el resumen)
 const selectedServiceNames = computed(() => {
   return form.services.map((slug) => {
-    const service = availableServices.value.find((s) => s.slug === slug)
+    const service = availableServices.value.find((s: { slug: string; name: string }) => s.slug === slug)
     return service?.name || slug
   })
+})
+
+// Duración estimada según servicios seleccionados
+const estimatedDuration = computed(() => {
+  let total = 0
+  for (const slug of form.services) {
+    const service = availableServices.value.find((s: { slug: string; estimatedDuration: string }) => s.slug === slug)
+    const minutes = parseInt(service?.estimatedDuration) || 0
+    total += minutes
+  }
+  return total || 60 // fallback 60 min si no hay datos
 })
 
 // ─── Enviar reserva ───
@@ -241,12 +252,13 @@ async function submitBooking() {
       body: {
         ...form,
         vehicleYear: parseInt(form.vehicleYear) || 0,
-        duration: 60, // TODO: calcular según servicios
+        duration: estimatedDuration.value,
       },
     })
     showSuccess.value = true
-  } catch (err: any) {
-    error.value = err?.data?.message || err?.statusMessage || 'Error al crear la cita'
+  } catch (err: unknown) {
+    const e = err as { data?: { message?: string }; statusMessage?: string }
+    error.value = e?.data?.message || e?.statusMessage || 'Error al crear la cita'
   } finally {
     loading.value = false
   }

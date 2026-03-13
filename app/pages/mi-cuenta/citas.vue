@@ -38,7 +38,7 @@ definePageMeta({ middleware: 'auth', layout: 'client' })
 useSeoMeta({ title: 'Mis Citas - MobautoRomero' })
 
 const auth = useAuthStore()
-const appointments = ref<any[]>([])
+const appointments = ref<Appointment[]>([])
 
 onMounted(async () => {
   try {
@@ -51,25 +51,5 @@ onMounted(async () => {
   }
 })
 
-function statusColor(status: string): string {
-  const colors: Record<string, string> = {
-    PENDING: 'warning',
-    CONFIRMED: 'primary',
-    IN_PROGRESS: 'info',
-    COMPLETED: 'positive',
-    CANCELLED: 'negative',
-  }
-  return colors[status] || 'grey'
-}
-
-function statusLabel(status: string): string {
-  const labels: Record<string, string> = {
-    PENDING: 'Pendiente',
-    CONFIRMED: 'Confirmada',
-    IN_PROGRESS: 'En proceso',
-    COMPLETED: 'Completada',
-    CANCELLED: 'Cancelada',
-  }
-  return labels[status] || status
-}
+// statusColor, statusLabel — auto-importados desde app/utils/statusHelpers.ts
 </script>

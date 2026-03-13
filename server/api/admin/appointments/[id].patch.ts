@@ -3,28 +3,20 @@
 // Permite al admin cambiar el estado de una cita.
 
 export default defineEventHandler(async (event) => {
-  const authData = getUserFromEvent(event)
-
-  if (!authData) {
-    throw createError({ statusCode: 401, statusMessage: 'No autenticado' })
-  }
-
-  if (authData.role !== 'ADMIN') {
-    throw createError({ statusCode: 403, statusMessage: 'No autorizado' })
-  }
+  requireAdmin(event)
 
   const id = getRouterParam(event, 'id')
-  const { status } = await readBody(event)
+  const { status } = validateBody(updateAppointmentStatusSchema, await readBody(event))
 
-  const validStatuses = ['PENDING', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']
-  if (!validStatuses.includes(status)) {
-    throw createError({ statusCode: 400, statusMessage: 'Estado no válido' })
+  try {
+    const appointment = await prisma.appointment.update({
+      where: { id },
+      data: { status },
+    })
+
+    return { success: true, data: { id: appointment.id, status: appointment.status } }
+  } catch (error) {
+    console.error('Error al actualizar cita:', error)
+    throw createError({ statusCode: 500, statusMessage: 'Error al actualizar la cita' })
   }
-
-  const appointment = await prisma.appointment.update({
-    where: { id },
-    data: { status },
-  })
-
-  return { success: true, data: { id: appointment.id, status: appointment.status } }
 })

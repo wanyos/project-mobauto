@@ -5,31 +5,37 @@
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
 
-  const service = await prisma.service.findUnique({
-    where: { slug },
-    include: {
-      faqs: { orderBy: { sortOrder: 'asc' } },
-    },
-  })
+  try {
+    const service = await prisma.service.findUnique({
+      where: { slug },
+      include: {
+        faqs: { orderBy: { sortOrder: 'asc' } },
+      },
+    })
 
-  if (!service) {
-    throw createError({ statusCode: 404, statusMessage: 'Servicio no encontrado' })
-  }
+    if (!service) {
+      throw createError({ statusCode: 404, statusMessage: 'Servicio no encontrado' })
+    }
 
-  return {
-    success: true,
-    data: {
-      id: service.id,
-      slug: service.slug,
-      name: service.name,
-      shortDescription: service.shortDescription,
-      fullDescription: service.fullDescription,
-      icon: service.icon,
-      category: service.category,
-      estimatedDuration: service.estimatedMinutes ? `${service.estimatedMinutes} min` : 'Consultar',
-      priceRange: service.priceLabel ?? 'Consultar',
-      features: service.features,
-      faqs: service.faqs.map((f) => ({ question: f.question, answer: f.answer })),
-    },
+    return {
+      success: true,
+      data: {
+        id: service.id,
+        slug: service.slug,
+        name: service.name,
+        shortDescription: service.shortDescription,
+        fullDescription: service.fullDescription,
+        icon: service.icon,
+        category: service.category,
+        estimatedDuration: service.estimatedMinutes ? `${service.estimatedMinutes} min` : 'Consultar',
+        priceRange: service.priceLabel ?? 'Consultar',
+        features: service.features,
+        faqs: service.faqs.map((f) => ({ question: f.question, answer: f.answer })),
+      },
+    }
+  } catch (error) {
+    if (error && typeof error === 'object' && 'statusCode' in error) throw error
+    console.error('Error al obtener servicio:', error)
+    throw createError({ statusCode: 500, statusMessage: 'Error al obtener el servicio' })
   }
 })

@@ -41,7 +41,7 @@ useSeoMeta({ title: 'Clientes - Admin MobautoRomero' })
 
 const auth = useAuthStore()
 
-const clientes = ref<any[]>([])
+const clientes = ref<AdminUser[]>([])
 const busqueda = ref('')
 
 const columns = [

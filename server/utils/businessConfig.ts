@@ -3,17 +3,7 @@
 // Nuxt auto-importa todo lo de server/utils/ en los endpoints del servidor.
 // → getBusinessConfig() y los helpers están disponibles sin importar nada.
 
-export interface BusinessConfig {
-  morningOpen:      string
-  morningClose:     string
-  afternoonEnabled: boolean
-  afternoonOpen:    string
-  afternoonClose:   string
-  slotMinutes:      30 | 60 | 120
-  firstSlot:        string
-  lastSlot:         string
-  workDays:         number[]
-}
+import type { BusinessConfig } from '../../shared/types/business'
 
 // Valores por defecto si la BD no tiene aún configuración guardada.
 // En formato clave-valor para que coincida con el modelo BusinessConfig de Prisma.

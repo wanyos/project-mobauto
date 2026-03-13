@@ -1,18 +1,7 @@
 // app/utils/businessConstants.ts
-// ─── Constantes y tipos compartidos del lado cliente ───
+// ─── Constantes del lado cliente ───
 // Nuxt auto-importa todo lo de app/utils/ en componentes, composables y páginas.
-
-export interface BusinessConfig {
-  morningOpen:      string
-  morningClose:     string
-  afternoonEnabled: boolean
-  afternoonOpen:    string
-  afternoonClose:   string
-  slotMinutes:      30 | 60 | 120
-  firstSlot:        string
-  lastSlot:         string
-  workDays:         number[]
-}
+// El tipo BusinessConfig viene de shared/types/business.ts (auto-importado por Nuxt).
 
 export const DEFAULT_CONFIG: BusinessConfig = {
   morningOpen:      '08:00',

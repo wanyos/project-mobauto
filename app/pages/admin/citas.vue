@@ -62,8 +62,9 @@ definePageMeta({ middleware: 'admin', layout: 'admin' })
 useSeoMeta({ title: 'Citas - Admin MobautoRomero' })
 
 const auth = useAuthStore()
+const $q = useQuasar()
 
-const appointments = ref<any[]>([])
+const appointments = ref<Appointment[]>([])
 const filtroEstado = ref<string | null>(null)
 
 const estadoOpciones = [
@@ -98,6 +99,7 @@ onMounted(async () => {
     appointments.value = response.data
   } catch (err) {
     console.error('Error cargando citas:', err)
+    $q.notify({ type: 'negative', message: 'Error al cargar las citas' })
   }
 })
 
@@ -109,41 +111,21 @@ async function cambiarEstado(id: string, nuevoEstado: string) {
       body: { status: nuevoEstado },
     })
     const cita = appointments.value.find(a => a.id === id)
-    if (cita) cita.status = nuevoEstado
+    if (cita) cita.status = nuevoEstado as AppointmentStatus
+    $q.notify({ type: 'positive', message: 'Estado actualizado correctamente' })
   } catch (err) {
     console.error('Error cambiando estado:', err)
+    $q.notify({ type: 'negative', message: 'Error al cambiar el estado' })
   }
 }
 
 function estadosDisponibles(estadoActual: string) {
   return estadoOpciones.filter(o => o.value !== estadoActual).map(o => ({
     ...o,
-    icon: iconEstado(o.value),
+    icon: statusIcon(o.value),
     color: statusColor(o.value),
   }))
 }
 
-function iconEstado(status: string): string {
-  const icons: Record<string, string> = {
-    PENDING: 'schedule', CONFIRMED: 'event_available', IN_PROGRESS: 'build',
-    COMPLETED: 'check_circle', CANCELLED: 'cancel',
-  }
-  return icons[status] || 'circle'
-}
-
-function statusColor(status: string): string {
-  const colors: Record<string, string> = {
-    PENDING: 'warning', CONFIRMED: 'primary', IN_PROGRESS: 'info',
-    COMPLETED: 'positive', CANCELLED: 'negative',
-  }
-  return colors[status] || 'grey'
-}
-
-function statusLabel(status: string): string {
-  const labels: Record<string, string> = {
-    PENDING: 'Pendiente', CONFIRMED: 'Confirmada', IN_PROGRESS: 'En curso',
-    COMPLETED: 'Completada', CANCELLED: 'Cancelada',
-  }
-  return labels[status] || status
-}
+// statusColor, statusLabel, statusIcon — auto-importados desde app/utils/statusHelpers.ts
 </script>

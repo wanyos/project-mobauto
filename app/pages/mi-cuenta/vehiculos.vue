@@ -68,12 +68,13 @@ const newVehicle = reactive({ brand: '', model: '', year: '', plate: '' })
 
 async function loadVehicles() {
   try {
-    const response = await $fetch<{ success: boolean; data: any[] }>('/api/vehicles', {
+    const response = await $fetch<{ success: boolean; data: Vehicle[] }>('/api/vehicles', {
       headers: { Authorization: `Bearer ${auth.token}` },
     })
     vehicles.value = response.data
   } catch (err) {
     console.error('Error cargando vehículos:', err)
+    $q.notify({ type: 'negative', message: 'Error al cargar tus vehículos' })
   }
 }
 
@@ -81,7 +82,7 @@ async function addVehicle() {
   if (!newVehicle.brand || !newVehicle.model || !newVehicle.year || !newVehicle.plate) return
   saving.value = true
   try {
-    const response = await $fetch<{ success: boolean; data: any }>('/api/vehicles', {
+    const response = await $fetch<{ success: boolean; data: Vehicle }>('/api/vehicles', {
       method: 'POST',
       headers: { Authorization: `Bearer ${auth.token}` },
       body: {
@@ -94,8 +95,10 @@ async function addVehicle() {
     vehicles.value.push(response.data)
     Object.assign(newVehicle, { brand: '', model: '', year: '', plate: '' })
     showDialog.value = false
+    $q.notify({ type: 'positive', message: 'Vehículo añadido correctamente' })
   } catch (err) {
     console.error('Error añadiendo vehículo:', err)
+    $q.notify({ type: 'negative', message: 'Error al añadir el vehículo' })
   } finally {
     saving.value = false
   }
@@ -115,8 +118,10 @@ function removeVehicle(id: string) {
         headers: { Authorization: `Bearer ${auth.token}` },
       })
       vehicles.value = vehicles.value.filter(v => v.id !== id)
+      $q.notify({ type: 'positive', message: 'Vehículo eliminado' })
     } catch (err) {
       console.error('Error eliminando vehículo:', err)
+      $q.notify({ type: 'negative', message: 'Error al eliminar el vehículo' })
     }
   })
 }

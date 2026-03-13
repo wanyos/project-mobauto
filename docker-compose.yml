@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: mobauto
       POSTGRES_DB: mobauto
     ports:
-      - 2345:5432
+      - 2346:5432
     volumes:
       - pg_data:/var/lib/postgresql/data
 

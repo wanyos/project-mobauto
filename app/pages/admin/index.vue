@@ -95,11 +95,11 @@ const columns = [
   { name: 'date', label: 'Fecha', field: 'scheduledDate', align: 'left' as const, sortable: true },
   { name: 'time', label: 'Hora', field: 'scheduledTime', align: 'left' as const },
   { name: 'customer', label: 'Cliente', field: 'customerName', align: 'left' as const },
-  { name: 'services', label: 'Servicios', field: (row: any) => row.services.join(', '), align: 'left' as const },
+  { name: 'services', label: 'Servicios', field: (row: Appointment) => row.services.join(', '), align: 'left' as const },
   { name: 'status', label: 'Estado', field: 'status', align: 'center' as const },
 ]
 
-const recentAppointments = ref<any[]>([])
+const recentAppointments = ref<Appointment[]>([])
 
 const citasHoy = computed(() => {
   const today = new Date().toISOString().split('T')[0]
@@ -133,22 +133,9 @@ onMounted(async () => {
     recentAppointments.value = response.data
   } catch (err) {
     console.error('Error al cargar citas:', err)
+    $q.notify({ type: 'negative', message: 'Error al cargar el dashboard' })
   }
 })
 
-function statusColor(status: string): string {
-  const colors: Record<string, string> = {
-    PENDING: 'warning', CONFIRMED: 'primary', IN_PROGRESS: 'info',
-    COMPLETED: 'positive', CANCELLED: 'negative',
-  }
-  return colors[status] || 'grey'
-}
-
-function statusLabel(status: string): string {
-  const labels: Record<string, string> = {
-    PENDING: 'Pendiente', CONFIRMED: 'Confirmada', IN_PROGRESS: 'En curso',
-    COMPLETED: 'Completada', CANCELLED: 'Cancelada',
-  }
-  return labels[status] || status
-}
+// statusColor, statusLabel — auto-importados desde app/utils/statusHelpers.ts
 </script>

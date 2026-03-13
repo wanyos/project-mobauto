@@ -6,5 +6,10 @@
 import { getBusinessConfig } from '../utils/businessConfig'
 
 export default defineEventHandler(async () => {
-  return { success: true, data: await getBusinessConfig() }
+  try {
+    return { success: true, data: await getBusinessConfig() }
+  } catch (error) {
+    console.error('Error al obtener configuración pública:', error)
+    throw createError({ statusCode: 500, statusMessage: 'Error al obtener la configuración' })
+  }
 })

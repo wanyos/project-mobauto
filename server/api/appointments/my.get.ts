@@ -3,35 +3,33 @@
 // Devuelve las citas del usuario autenticado.
 
 export default defineEventHandler(async (event) => {
-  const authUser = getUserFromEvent(event)
+  const authUser = requireAuth(event)
 
-  if (!authUser) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'No autenticado',
+  try {
+    const appointments = await prisma.appointment.findMany({
+      where: { userId: authUser.userId },
+      include: {
+        services: { include: { service: true } },
+      },
+      orderBy: { scheduledDate: 'desc' },
     })
-  }
 
-  const appointments = await prisma.appointment.findMany({
-    where: { userId: authUser.userId },
-    include: {
-      services: { include: { service: true } },
-    },
-    orderBy: { scheduledDate: 'desc' },
-  })
-
-  return {
-    success: true,
-    data: appointments.map((apt) => ({
-      id: apt.id,
-      scheduledDate: apt.scheduledDate.toISOString().split('T')[0],
-      scheduledTime: apt.scheduledTime,
-      status: apt.status,
-      notes: apt.notes,
-      vehicleBrand: apt.vehicleBrand,
-      vehicleModel: apt.vehicleModel,
-      vehiclePlate: apt.vehiclePlate,
-      services: apt.services.map((s) => s.service.name),
-    })),
+    return {
+      success: true,
+      data: appointments.map((apt) => ({
+        id: apt.id,
+        scheduledDate: apt.scheduledDate.toISOString().split('T')[0],
+        scheduledTime: apt.scheduledTime,
+        status: apt.status,
+        notes: apt.notes,
+        vehicleBrand: apt.vehicleBrand,
+        vehicleModel: apt.vehicleModel,
+        vehiclePlate: apt.vehiclePlate,
+        services: apt.services.map((s) => s.service.name),
+      })),
+    }
+  } catch (error) {
+    console.error('Error al obtener citas del usuario:', error)
+    throw createError({ statusCode: 500, statusMessage: 'Error al obtener tus citas' })
   }
 })

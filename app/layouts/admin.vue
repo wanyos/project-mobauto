@@ -62,6 +62,7 @@ const { user, logout } = useAuth()
 const route = useRoute()
 const $q = useQuasar()
 const drawer = ref(!$q.screen.lt.md)
+watch(() => $q.screen.lt.md, (isMobile) => { drawer.value = !isMobile })
 
 const adminLinks = [
   { to: '/admin', icon: 'dashboard', label: 'Dashboard' },

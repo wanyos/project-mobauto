@@ -6,9 +6,7 @@
 import type { BusinessConfig } from '../../utils/businessConfig'
 
 export default defineEventHandler(async (event) => {
-  const authData = getUserFromEvent(event)
-  if (!authData) throw createError({ statusCode: 401, statusMessage: 'No autenticado' })
-  if (authData.role !== 'ADMIN') throw createError({ statusCode: 403, statusMessage: 'No autorizado' })
+  requireAdmin(event)
 
   const body = await readBody<BusinessConfig>(event)
 
@@ -25,16 +23,21 @@ export default defineEventHandler(async (event) => {
     { key: 'work_days',         value: body.workDays.join(',') },
   ]
 
-  // Upsert en paralelo — actualiza si existe, crea si no
-  await Promise.all(
-    entries.map(({ key, value }) =>
-      prisma.businessConfig.upsert({
-        where:  { key },
-        update: { value },
-        create: { key, value },
-      })
+  try {
+    // Upsert en paralelo — actualiza si existe, crea si no
+    await Promise.all(
+      entries.map(({ key, value }) =>
+        prisma.businessConfig.upsert({
+          where:  { key },
+          update: { value },
+          create: { key, value },
+        })
+      )
     )
-  )
 
-  return { success: true }
+    return { success: true }
+  } catch (error) {
+    console.error('Error al guardar configuración:', error)
+    throw createError({ statusCode: 500, statusMessage: 'Error al guardar la configuración' })
+  }
 })

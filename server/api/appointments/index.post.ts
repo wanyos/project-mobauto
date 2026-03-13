@@ -3,92 +3,83 @@
 // Crea una nueva cita.
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event);
-
-  // Detectar si hay un usuario logueado
+  const body = await readBody(event)
   const authUser = getUserFromEvent(event)
 
   const {
-    customerName,
-    customerEmail,
-    customerPhone,
-    vehicleBrand,
-    vehicleModel,
-    vehicleYear,
-    vehiclePlate,
-    services,
-    scheduledDate,
-    scheduledTime,
-    duration,
-    notes,
-  } = body;
+    customerName, customerEmail, customerPhone,
+    vehicleBrand, vehicleModel, vehicleYear, vehiclePlate,
+    services, scheduledDate, scheduledTime, duration, notes,
+  } = validateBody(createAppointmentSchema, body)
 
-  // Validaciones básicas
-  if (
-    !customerName ||
-    !customerEmail ||
-    !scheduledDate ||
-    !scheduledTime ||
-    !services?.length
-  ) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Faltan campos obligatorios",
-    });
-  }
+  try {
+    // Transacción atómica: verificar disponibilidad + crear cita
+    // Evita race conditions donde dos requests reservan el mismo slot
+    const appointment = await prisma.$transaction(async (tx: typeof prisma) => {
+      // Verificar que el slot sigue disponible (dentro de la transacción)
+      const booked = await tx.appointment.findFirst({
+        where: {
+          scheduledDate: new Date(scheduledDate),
+          scheduledTime,
+          status: { not: 'CANCELLED' },
+        },
+      })
+      if (booked) {
+        throw createError({
+          statusCode: 409,
+          statusMessage: "El horario seleccionado ya no está disponible",
+        })
+      }
 
-  // Verificar que el slot sigue disponible
-  const booked = await prisma.appointment.findFirst({
-    where: {
-      scheduledDate: new Date(scheduledDate),
-      scheduledTime,
-      status: { not: 'CANCELLED' },
-    },
-  })
-  if (booked) {
-    throw createError({
-      statusCode: 409,
-      statusMessage: "El horario seleccionado ya no está disponible",
+      // Buscar los IDs de los servicios a partir de sus slugs
+      const serviceRecords = await tx.service.findMany({
+        where: { slug: { in: services as string[] } },
+      })
+
+      if (serviceRecords.length !== services.length) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'Uno o más servicios seleccionados no existen',
+        })
+      }
+
+      return tx.appointment.create({
+        data: {
+          userId: authUser?.userId || null,
+          customerName,
+          customerEmail,
+          customerPhone: customerPhone || null,
+          vehicleBrand: vehicleBrand || null,
+          vehicleModel: vehicleModel || null,
+          vehicleYear: vehicleYear || null,
+          vehiclePlate: vehiclePlate || null,
+          scheduledDate: new Date(scheduledDate),
+          scheduledTime,
+          duration: duration || 60,
+          notes: notes || null,
+          services: {
+            create: serviceRecords.map((s) => ({ serviceId: s.id })),
+          },
+        },
+        include: {
+          services: { include: { service: true } },
+        },
+      })
     })
-  }
 
-  // Buscar los IDs de los servicios a partir de sus slugs
-  const serviceRecords = await prisma.service.findMany({
-    where: { slug: { in: services as string[] } },
-  })
-
-  const appointment = await prisma.appointment.create({
-    data: {
-      userId: authUser?.userId || null,
-      customerName,
-      customerEmail,
-      customerPhone: customerPhone || null,
-      vehicleBrand: vehicleBrand || null,
-      vehicleModel: vehicleModel || null,
-      vehicleYear: vehicleYear || null,
-      vehiclePlate: vehiclePlate || null,
-      scheduledDate: new Date(scheduledDate),
-      scheduledTime,
-      duration: duration || 60,
-      notes: notes || null,
-      services: {
-        create: serviceRecords.map((s) => ({ serviceId: s.id })),
+    setResponseStatus(event, 201)
+    return {
+      success: true,
+      data: {
+        ...appointment,
+        scheduledDate: scheduledDate, // devolver como string YYYY-MM-DD
+        services: appointment.services.map((s) => s.service.slug),
       },
-    },
-    include: {
-      services: { include: { service: true } },
-    },
-  })
-
-  console.log("📅 Nueva cita creada:", appointment.id, scheduledDate, scheduledTime)
-
-  setResponseStatus(event, 201)
-  return {
-    success: true,
-    data: {
-      ...appointment,
-      scheduledDate: scheduledDate, // devolver como string YYYY-MM-DD
-      services: appointment.services.map((s) => s.service.slug),
-    },
+    }
+  } catch (error) {
+    // Re-lanzar errores HTTP ya creados (409, etc.)
+    if (error && typeof error === 'object' && 'statusCode' in error) throw error
+    console.error('Error al crear cita:', error)
+    throw createError({ statusCode: 500, statusMessage: 'Error al crear la cita' })
   }
 });

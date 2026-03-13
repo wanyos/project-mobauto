@@ -1,101 +1,76 @@
+// app/types/index.ts
+// ─── Tipos del frontend alineados con el schema de Prisma y las respuestas API ───
 
-export type UserRole = 'CUSTOMER' | 'MECHANIC' | 'ADMIN'
-
-export interface Profile {
-    id: string
-    firstname: string
-    lastname: string
-    phone?: string
-    avatar?: string
-}
+export type UserRole = 'CUSTOMER' | 'ADMIN'
 
 export interface User {
-    id: string
-    email: string
-    role: UserRole
-    firstName?: string
-    lastName?: string
-    phone?: string
-    profile?: Profile
-    createAt?: string
-    updateAt?: string
+  id: string
+  email: string
+  role: UserRole
+  firstName: string
+  lastName: string
+  phone?: string | null
 }
 
 export interface Vehicle {
-    id: string
-    brand: string
-    model: string
-    year: number
-    licensePlate: string // matricula
-    vin?: string // bastidor
-    kilometers?: number
-    createAt: string
-    updateAt: string
+  id: string
+  brand: string
+  model: string
+  year: number
+  plate: string
+  color?: string | null
 }
 
-// Categorías de servicio
-export type ServiceCategory =
-  | 'MAINTENANCE'   // Mantenimiento
-  | 'REPAIR'        // Reparación
-  | 'DIAGNOSIS'     // Diagnóstico
-  | 'BODYWORK'      // Chapa y pintura
-  | 'TIRE_SERVICE'  // Neumáticos
-  | 'INSPECTION'    // ITV / Inspección
-  | 'OTHER'         // Otros
+export type ServiceCategory = 'BODYWORK' | 'REPAIR' | 'MAINTENANCE' | 'INSPECTION' | 'OTHER'
 
-  // Servicio del taller
 export interface Service {
   id: string
-  name: string              // "Cambio de aceite"
-  description?: string
-  estimatedDuration: number // minutos
-  basePrice: number         // euros
+  slug: string
+  name: string
+  shortDescription: string
+  fullDescription: string
+  icon: string
   category: ServiceCategory
-  isActive: boolean
+  estimatedDuration: string
+  priceRange: string
+  features: string[]
+  faqs: Array<{ question: string; answer: string }>
 }
 
-// Estados de una cita
-export type AppointmentStatus =
-  | 'PENDING'      // Pendiente de confirmar
-  | 'CONFIRMED'    // Confirmada
-  | 'IN_PROGRESS'  // En proceso
-  | 'COMPLETED'    // Completada
-  | 'CANCELLED'    // Cancelada
-  | 'NO_SHOW'      // No se presentó
+export type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
 
-// Cita
 export interface Appointment {
   id: string
-  customerId: string
-  vehicleId: string
-  vehicle?: Vehicle
-  services: AppointmentService[]
-  scheduledAt: string     // ISO date string
-  duration: number        // minutos
+  scheduledDate: string
+  scheduledTime: string
   status: AppointmentStatus
-  notes?: string
-  totalPrice?: number
-  createdAt: string
-  updatedAt: string
+  notes?: string | null
+  vehicleBrand?: string | null
+  vehicleModel?: string | null
+  vehiclePlate?: string | null
+  services: string[]
+  customerName?: string
+  customerEmail?: string
 }
 
-// Relación cita-servicio (con precio específico)
-export interface AppointmentService {
+export interface AdminUser {
   id: string
-  serviceId: string
-  service?: Service
-  price: number
+  email: string
+  firstName: string
+  lastName: string
+  phone?: string | null
+  createdAt: string
+  totalAppointments: number
+  totalVehicles: number
 }
 
 // ─── Tipos para formularios y API ───
 
-// Lo que envías al backend para login
 export interface LoginRequest {
   email: string
   password: string
 }
 
-// Lo que envías al backend para registro
 export interface RegisterRequest {
   email: string
   password: string
@@ -104,17 +79,16 @@ export interface RegisterRequest {
   phone?: string
 }
 
-// Respuesta genérica de la API
 export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   message?: string
-  errors?: Record<string, string[]>
+  total?: number
+  page?: number
+  limit?: number
 }
 
-// Respuesta de autenticación
 export interface AuthResponse {
   user: User
   token: string
 }
-

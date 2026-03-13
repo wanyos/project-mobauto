@@ -48,3 +48,23 @@ export function getUserFromEvent(event: H3Event): { userId: string; role: string
   const token = authHeader.slice(7) // Quita "Bearer " del inicio
   return verifyToken(token)
 }
+
+// ─── Requerir autenticación ───
+// Lanza 401 si no hay token válido. Devuelve los datos del usuario autenticado.
+export function requireAuth(event: H3Event): { userId: string; role: string } {
+  const authData = getUserFromEvent(event)
+  if (!authData) {
+    throw createError({ statusCode: 401, statusMessage: 'No autenticado' })
+  }
+  return authData
+}
+
+// ─── Requerir rol admin ───
+// Lanza 401 si no autenticado, 403 si no es admin. Devuelve los datos del admin.
+export function requireAdmin(event: H3Event): { userId: string; role: string } {
+  const authData = requireAuth(event)
+  if (authData.role !== 'ADMIN') {
+    throw createError({ statusCode: 403, statusMessage: 'No autorizado' })
+  }
+  return authData
+}

@@ -30,7 +30,6 @@ export const useAuthStore = defineStore('auth', () => {
   const fullName = computed(() => {
     if (!user.value) return ''
     if (user.value.firstName) return `${user.value.firstName} ${user.value.lastName}`
-    if (user.value.profile) return `${user.value.profile.firstname} ${user.value.profile.lastname}`
     return user.value.email
   })
 
@@ -54,7 +53,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = response.data.user as User
 
       return response
-    } catch (error: any) {
+    } catch (error) {
       throw error
     } finally {
       loading.value = false
@@ -73,7 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = response.data.user as User
 
       return response
-    } catch (error: any) {
+    } catch (error) {
       throw error
     } finally {
       loading.value = false
@@ -90,8 +89,11 @@ export const useAuthStore = defineStore('auth', () => {
         },
       })
       user.value = response.data as User
-    } catch {
-      logout()
+    } catch (error) {
+      // Solo hacer logout si el token es inválido (401), no en errores de red temporales
+      if (error && typeof error === 'object' && 'statusCode' in error && error.statusCode === 401) {
+        logout()
+      }
     }
   }
 
