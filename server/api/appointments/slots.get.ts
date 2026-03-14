@@ -16,6 +16,13 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    // Rechazar fechas pasadas
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    if (new Date(date) < today) {
+      return { success: true, data: { date, slots: [] } }
+    }
+
     const config = await getBusinessConfig()
 
     // Verificar que es día laboral según la configuración de la BD
@@ -34,7 +41,18 @@ export default defineEventHandler(async (event) => {
     })
 
     const bookedTimes = booked.map((a) => a.scheduledTime)
-    const slots = generateSlots(config).filter((s) => !bookedTimes.includes(s))
+    let slots = generateSlots(config).filter((s) => !bookedTimes.includes(s))
+
+    // Filtrar horas pasadas si la fecha es hoy
+    const now = new Date()
+    const todayStr = now.toISOString().slice(0, 10) // "YYYY-MM-DD"
+    if (date === todayStr) {
+      const currentMinutes = now.getHours() * 60 + now.getMinutes()
+      slots = slots.filter((s) => {
+        const parts = s.split(':').map(Number)
+        return (parts[0] ?? 0) * 60 + (parts[1] ?? 0) > currentMinutes
+      })
+    }
 
     return { success: true, data: { date, slots } }
   } catch (error) {
