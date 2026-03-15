@@ -1,4 +1,10 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+
+// Mock de prisma para evitar que requiera DATABASE_URL
+vi.mock('../../server/utils/prisma', () => ({
+  prisma: {},
+}))
+
 import { generateSlots, toMinutes } from '../../server/utils/businessConfig'
 import type { BusinessConfig } from '../../shared/types/business'
 

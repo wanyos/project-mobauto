@@ -233,8 +233,8 @@ const selectedServiceNames = computed(() => {
 const estimatedDuration = computed(() => {
   let total = 0
   for (const slug of form.services) {
-    const service = availableServices.value.find((s: { slug: string; estimatedDuration: string }) => s.slug === slug)
-    const minutes = parseInt(service?.estimatedDuration) || 0
+    const service = availableServices.value.find((s: { slug: string; estimatedDuration?: string }) => s.slug === slug)
+    const minutes = parseInt(service?.estimatedDuration ?? '0') || 0
     total += minutes
   }
   return total || 60 // fallback 60 min si no hay datos

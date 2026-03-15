@@ -202,7 +202,7 @@ useSeoMeta({
 // Esto le dice a Google "somos un negocio de automoción en esta dirección"
 // Aparecerá como rich snippet en los resultados de búsqueda.
 const jsonLd = computed(() => {
-  const dayOfWeek = config.value.workDays.map(d => DAY_NAMES_EN[d])
+  const dayOfWeek = config.value.workDays.map((d: number) => DAY_NAMES_EN[d])
   const specs = [
     {
       '@type': 'OpeningHoursSpecification',

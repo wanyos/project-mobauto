@@ -56,7 +56,7 @@ const columns = [
 const clientesFiltrados = computed(() => {
   if (!busqueda.value) return clientes.value
   const q = busqueda.value.toLowerCase()
-  return clientes.value.filter(c =>
+  return clientes.value.filter((c: AdminUser) =>
     `${c.firstName} ${c.lastName}`.toLowerCase().includes(q) ||
     c.email.toLowerCase().includes(q)
   )
@@ -67,7 +67,7 @@ onMounted(async () => {
     const response = await $fetch('/api/admin/users', {
       headers: { Authorization: `Bearer ${auth.token}` },
     })
-    clientes.value = response.data
+    clientes.value = response.data as AdminUser[]
   } catch (err) {
     console.error('Error cargando clientes:', err)
   }

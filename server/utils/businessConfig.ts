@@ -4,6 +4,7 @@
 // → getBusinessConfig() y los helpers están disponibles sin importar nada.
 
 import type { BusinessConfig } from '../../shared/types/business'
+import { prisma } from './prisma'
 
 // Valores por defecto si la BD no tiene aún configuración guardada.
 // En formato clave-valor para que coincida con el modelo BusinessConfig de Prisma.

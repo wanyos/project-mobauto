@@ -1,0 +1,1 @@
+{"root":["./vitest.config.ts","./tests/app/businessconstants.test.ts","./tests/app/statushelpers.test.ts","./tests/server/auth.test.ts","./tests/server/businessconfig.test.ts","./tests/server/ratelimit.test.ts","./tests/server/slots.test.ts","./tests/server/validation.test.ts"],"version":"5.9.3"}

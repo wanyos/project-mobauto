@@ -1,7 +1,7 @@
 // server/utils/rateLimit.ts
 // ─── Rate limiter en memoria para proteger endpoints de auth ───
 
-import type { H3Event } from 'h3'
+import { type H3Event, getHeader, createError } from 'h3'
 
 interface RateLimitEntry {
   count: number

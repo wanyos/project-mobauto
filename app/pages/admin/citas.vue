@@ -88,7 +88,7 @@ const columns = [
 
 const citasFiltradas = computed(() => {
   if (!filtroEstado.value) return appointments.value
-  return appointments.value.filter(a => a.status === filtroEstado.value)
+  return appointments.value.filter((a: Appointment) => a.status === filtroEstado.value)
 })
 
 onMounted(async () => {
@@ -96,7 +96,7 @@ onMounted(async () => {
     const response = await $fetch('/api/admin/appointments', {
       headers: { Authorization: `Bearer ${auth.token}` },
     })
-    appointments.value = response.data
+    appointments.value = response.data as Appointment[]
   } catch (err) {
     console.error('Error cargando citas:', err)
     $q.notify({ type: 'negative', message: 'Error al cargar las citas' })
@@ -110,7 +110,7 @@ async function cambiarEstado(id: string, nuevoEstado: string) {
       headers: { Authorization: `Bearer ${auth.token}` },
       body: { status: nuevoEstado },
     })
-    const cita = appointments.value.find(a => a.id === id)
+    const cita = appointments.value.find((a: Appointment) => a.id === id)
     if (cita) cita.status = nuevoEstado as AppointmentStatus
     $q.notify({ type: 'positive', message: 'Estado actualizado correctamente' })
   } catch (err) {

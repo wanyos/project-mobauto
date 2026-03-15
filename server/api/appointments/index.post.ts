@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   try {
     // Transacción atómica: verificar disponibilidad + crear cita
     // Evita race conditions donde dos requests reservan el mismo slot
-    const appointment = await prisma.$transaction(async (tx: typeof prisma) => {
+    const appointment = await prisma.$transaction(async (tx) => {
       // Verificar que el slot sigue disponible (dentro de la transacción)
       const booked = await tx.appointment.findFirst({
         where: {

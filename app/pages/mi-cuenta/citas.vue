@@ -45,7 +45,7 @@ onMounted(async () => {
     const response = await $fetch('/api/appointments/my', {
       headers: { Authorization: `Bearer ${auth.token}` },
     })
-    appointments.value = response.data
+    appointments.value = response.data as Appointment[]
   } catch (err) {
     console.error('Error cargando citas:', err)
   }

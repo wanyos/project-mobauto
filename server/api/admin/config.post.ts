@@ -3,7 +3,7 @@
 // Guarda la configuración del taller. Solo accesible por admins.
 // Hace upsert de cada clave (inserta si no existe, actualiza si ya existe).
 
-import type { BusinessConfig } from '../../utils/businessConfig'
+import type { BusinessConfig } from '../../../shared/types/business'
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event)

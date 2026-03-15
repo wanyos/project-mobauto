@@ -2,7 +2,7 @@
 // Configuración global del taller — compartida entre la página admin y el selector de fechas.
 // Usa useState de Nuxt para cache global entre componentes (más ligero que Pinia).
 
-import type { BusinessConfig } from '~/utils/businessConstants'
+import type { BusinessConfig } from '../../shared/types/business'
 import { DEFAULT_CONFIG } from '~/utils/businessConstants'
 
 export function useBusinessConfig() {

@@ -2,7 +2,7 @@
 
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import type { H3Event } from 'h3'
+import { type H3Event, getHeader, createError } from 'h3'
 
 // Secret para firmar los JWT. En producción DEBE estar en variables de entorno.
 const JWT_SECRET = process.env.JWT_SECRET || 'mobauto-dev-secret-cambiar-en-produccion'

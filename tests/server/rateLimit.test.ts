@@ -1,18 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
-// Mock de createError (auto-importado por Nuxt en server/utils)
-vi.stubGlobal('createError', (opts: { statusCode: number; statusMessage: string }) => {
-  const err = new Error(opts.statusMessage) as Error & { statusCode: number }
-  err.statusCode = opts.statusCode
-  return err
-})
+// Mock del módulo h3 antes de importar rateLimit
+vi.mock('h3', () => ({
+  getHeader: (event: any, name: string) => {
+    return event.headers?.[name] ?? null
+  },
+  createError: (opts: { statusCode: number; statusMessage: string }) => {
+    const err = new Error(opts.statusMessage) as Error & { statusCode: number }
+    err.statusCode = opts.statusCode
+    return err
+  },
+}))
 
-// Mock de getHeader
-vi.stubGlobal('getHeader', (event: any, name: string) => {
-  return event.headers?.[name] ?? null
-})
-
-// Importar después de los mocks globales
+// Importar después del mock
 const { rateLimit } = await import('../../server/utils/rateLimit')
 
 function createMockEvent(ip: string, path: string) {

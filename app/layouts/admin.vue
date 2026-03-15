@@ -68,6 +68,7 @@ const adminLinks = [
   { to: '/admin', icon: 'dashboard', label: 'Dashboard' },
   { to: '/admin/citas', icon: 'event', label: 'Citas' },
   { to: '/admin/clientes', icon: 'people', label: 'Clientes' },
+  { to: '/admin/mensajes', icon: 'mail', label: 'Mensajes' },
   { to: '/admin/configuracion', icon: 'settings', label: 'Configuración' },
 ]
 </script>

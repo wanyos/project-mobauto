@@ -198,8 +198,6 @@
 </template>
 
 <script setup lang="ts">
-import type { BusinessConfig } from '~/utils/businessConstants'
-
 definePageMeta({
   middleware: 'admin',
   layout: 'admin',
@@ -244,7 +242,7 @@ function toggleDia(dia: number, activo: boolean): void {
       form.workDays = [...form.workDays, dia].sort((a, b) => a - b)
     }
   } else {
-    form.workDays = form.workDays.filter(d => d !== dia)
+    form.workDays = form.workDays.filter((d: number) => d !== dia)
   }
 }
 

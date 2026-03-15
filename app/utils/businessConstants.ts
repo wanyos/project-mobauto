@@ -1,7 +1,8 @@
 // app/utils/businessConstants.ts
 // ─── Constantes del lado cliente ───
 // Nuxt auto-importa todo lo de app/utils/ en componentes, composables y páginas.
-// El tipo BusinessConfig viene de shared/types/business.ts (auto-importado por Nuxt).
+
+import type { BusinessConfig } from '../../shared/types/business'
 
 export const DEFAULT_CONFIG: BusinessConfig = {
   morningOpen:      '08:00',

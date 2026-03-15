@@ -3,6 +3,7 @@
 // Nuxt auto-importa desde server/utils/ en todos los endpoints.
 
 import { z } from 'zod'
+import { createError } from 'h3'
 
 // ─── Auth ───
 

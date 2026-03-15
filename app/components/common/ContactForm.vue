@@ -2,7 +2,7 @@
   <q-card class="w-full">
     <q-card-section>
       <h3 class="text-xl font-bold mb-4">Contáctanos</h3>
-      <form @submit.prevent="onSubmit" class="space-y-4">
+      <q-form ref="formRef" @submit.prevent="onSubmit" class="space-y-4">
         <q-input v-model="form.name" label="Nombre completo" outlined
           :rules="[(v: string) => !!v || 'Obligatorio']" />
         <q-input v-model="form.email" label="Email" type="email" outlined
@@ -17,12 +17,15 @@
 
         <q-btn type="submit" color="primary" label="Enviar Mensaje"
           class="w-full" unelevated no-caps :loading="loading" />
-      </form>
+      </q-form>
     </q-card-section>
   </q-card>
 </template>
 
 <script setup lang="ts">
+import type { QForm } from 'quasar'
+
+const formRef = ref<QForm | null>(null)
 const form = reactive({ name: '', email: '', phone: '', message: '' })
 const loading = ref(false)
 const success = ref(false)
@@ -35,8 +38,9 @@ async function onSubmit() {
       body: form,
     })
     success.value = true
-    // Limpiar formulario
     Object.assign(form, { name: '', email: '', phone: '', message: '' })
+    await nextTick()
+    formRef.value?.resetValidation()
   } catch (err) {
     console.error('Error al enviar:', err)
   } finally {

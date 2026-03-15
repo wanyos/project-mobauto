@@ -103,18 +103,18 @@ const recentAppointments = ref<Appointment[]>([])
 
 const citasHoy = computed(() => {
   const today = new Date().toISOString().split('T')[0]
-  return recentAppointments.value.filter(a => a.scheduledDate === today).length
+  return recentAppointments.value.filter((a: Appointment) => a.scheduledDate === today).length
 })
 
 const citasPendientes = computed(() =>
-  recentAppointments.value.filter(a => a.status === 'PENDING').length
+  recentAppointments.value.filter((a: Appointment) => a.status === 'PENDING').length
 )
 
 const citasCompletadasMes = computed(() => {
   const now = new Date()
   const mesActual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
   return recentAppointments.value.filter(
-    a => a.status === 'COMPLETED' && a.scheduledDate.startsWith(mesActual)
+    (a: Appointment) => a.status === 'COMPLETED' && (a.scheduledDate ?? '').startsWith(mesActual)
   ).length
 })
 
@@ -130,7 +130,7 @@ onMounted(async () => {
     const response = await $fetch('/api/admin/appointments', {
       headers: { Authorization: `Bearer ${auth.token}` },
     })
-    recentAppointments.value = response.data
+    recentAppointments.value = response.data as Appointment[]
   } catch (err) {
     console.error('Error al cargar citas:', err)
     $q.notify({ type: 'negative', message: 'Error al cargar el dashboard' })
