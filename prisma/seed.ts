@@ -1,15 +1,16 @@
 // prisma/seed.ts
 // Prisma v7: importar desde el archivo client.ts de la ruta de output del schema
-import { Pool } from 'pg'
+import 'dotenv/config'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '../app/generated/prisma/client'
 import bcrypt from 'bcrypt'
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL!,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-})
-const adapter = new PrismaPg(pool)
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL no está definido')
+}
+
+const connectionString = process.env.DATABASE_URL
+const adapter = new PrismaPg({ connectionString })
 const prisma = new PrismaClient({ adapter })
 
 async function main() {

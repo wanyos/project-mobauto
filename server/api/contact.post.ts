@@ -1,6 +1,7 @@
 // ─── Endpoint: POST /api/contact ───
 // Recibe mensajes del formulario de contacto.
-// Por ahora solo los logueamos. Luego integraremos email con Resend.
+
+import { contactNotificationShop } from '../utils/emailTemplates'
 
 export default defineEventHandler(async (event) => {
   const { name, email, message } = validateBody(contactSchema, await readBody(event))
@@ -10,6 +11,13 @@ export default defineEventHandler(async (event) => {
     await prisma.contactMessage.create({
       data: { name, email, message },
     })
+
+    // Enviar email al taller con los datos del formulario
+    sendEmail({
+      to: process.env.GMAIL_USER ?? '',
+      subject: `Nuevo mensaje de contacto: ${name}`,
+      html: contactNotificationShop({ name, email, message }),
+    }).catch(err => console.error('Email contacto:', err))
 
     return { success: true, data: { message: "Mensaje recibido correctamente" } };
   } catch (error) {

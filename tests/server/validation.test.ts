@@ -3,6 +3,9 @@ import {
   registerSchema,
   loginSchema,
   updateProfileSchema,
+  changePasswordSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
   createAppointmentSchema,
   createVehicleSchema,
   contactSchema,
@@ -219,6 +222,80 @@ describe('updateAppointmentStatusSchema', () => {
 
   it('rechaza sin estado', () => {
     const result = updateAppointmentStatusSchema.safeParse({})
+    expect(result.success).toBe(false)
+  })
+})
+
+// ─── changePasswordSchema ───
+
+describe('changePasswordSchema', () => {
+  it('acepta contraseña actual y nueva válidas', () => {
+    const result = changePasswordSchema.safeParse({ currentPassword: 'oldpass', newPassword: '123456' })
+    expect(result.success).toBe(true)
+  })
+
+  it('rechaza contraseña actual vacía', () => {
+    const result = changePasswordSchema.safeParse({ currentPassword: '', newPassword: '123456' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rechaza nueva contraseña corta (< 6 chars)', () => {
+    const result = changePasswordSchema.safeParse({ currentPassword: 'oldpass', newPassword: '123' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rechaza sin contraseña actual', () => {
+    const result = changePasswordSchema.safeParse({ newPassword: '123456' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rechaza sin nueva contraseña', () => {
+    const result = changePasswordSchema.safeParse({ currentPassword: 'oldpass' })
+    expect(result.success).toBe(false)
+  })
+})
+
+// ─── forgotPasswordSchema ───
+
+describe('forgotPasswordSchema', () => {
+  it('acepta email válido', () => {
+    expect(forgotPasswordSchema.safeParse({ email: 'test@example.com' }).success).toBe(true)
+  })
+
+  it('rechaza email inválido', () => {
+    expect(forgotPasswordSchema.safeParse({ email: 'noemail' }).success).toBe(false)
+  })
+
+  it('rechaza sin email', () => {
+    expect(forgotPasswordSchema.safeParse({}).success).toBe(false)
+  })
+})
+
+// ─── resetPasswordSchema ───
+
+describe('resetPasswordSchema', () => {
+  it('acepta token y contraseña válidos', () => {
+    const result = resetPasswordSchema.safeParse({ token: 'abc123', password: '123456' })
+    expect(result.success).toBe(true)
+  })
+
+  it('rechaza contraseña corta (< 6 chars)', () => {
+    const result = resetPasswordSchema.safeParse({ token: 'abc123', password: '123' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rechaza sin token', () => {
+    const result = resetPasswordSchema.safeParse({ password: '123456' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rechaza token vacío', () => {
+    const result = resetPasswordSchema.safeParse({ token: '', password: '123456' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rechaza sin contraseña', () => {
+    const result = resetPasswordSchema.safeParse({ token: 'abc123' })
     expect(result.success).toBe(false)
   })
 })

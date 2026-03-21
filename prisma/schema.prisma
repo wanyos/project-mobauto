@@ -30,10 +30,11 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relaciones
-  vehicles     Vehicle[]
-  appointments Appointment[]
-  blogPosts    BlogPost[]     // Posts escritos (solo ADMIN)
-  blogComments BlogComment[]
+  vehicles       Vehicle[]
+  appointments   Appointment[]
+  blogPosts      BlogPost[]     // Posts escritos (solo ADMIN)
+  blogComments   BlogComment[]
+  passwordResets PasswordReset[]
 
   @@map("users")
 }
@@ -42,6 +43,23 @@ enum Role {
   CUSTOMER
   MECHANIC
   ADMIN
+}
+
+// ─────────────────────────────────────────────
+// TOKENS DE RECUPERACION DE PASSWORD
+// ─────────────────────────────────────────────
+model PasswordReset {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@map("password_resets")
 }
 
 // ─────────────────────────────────────────────

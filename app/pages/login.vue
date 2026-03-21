@@ -75,6 +75,12 @@
         </form>
       </q-card-section>
 
+      <q-card-section class="text-center pt-0">
+        <NuxtLink to="/forgot-password" class="text-sm text-gray-500 hover:text-primary hover:underline">
+          ¿Olvidaste tu contraseña?
+        </NuxtLink>
+      </q-card-section>
+
       <q-separator />
 
       <q-card-section class="text-center">

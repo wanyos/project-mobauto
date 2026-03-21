@@ -153,3 +153,84 @@ export function appointmentNotificationShop(data: AppointmentEmailData): string 
   const preheader = `${data.customerName} — ${formatDate(data.scheduledDate)} a las ${data.scheduledTime} h — ${data.services.join(', ')}`
   return baseLayout(content, preheader)
 }
+
+// ─── Template: Mensaje de contacto → Taller ───
+
+interface ContactEmailData {
+  name: string
+  email: string
+  message: string
+}
+
+export function contactNotificationShop(data: ContactEmailData): string {
+  const content = `
+    <h2 style="margin:0 0 8px;color:#1B3A5C;font-size:20px;">Nuevo mensaje de contacto</h2>
+    <p style="margin:0 0 24px;color:#495057;font-size:15px;">
+      Se ha recibido un nuevo mensaje desde el formulario de contacto de la web.
+    </p>
+
+    <!-- Datos del remitente -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f9fa;border-radius:6px;overflow:hidden;margin-bottom:16px;">
+      <tr>
+        <td colspan="2" style="background-color:#1B3A5C;padding:10px 12px;">
+          <strong style="color:#ffffff;font-size:14px;">Remitente</strong>
+        </td>
+      </tr>
+      ${infoRow('Nombre', data.name)}
+      ${infoRow('Email', data.email)}
+    </table>
+
+    <!-- Mensaje -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f9fa;border-radius:6px;overflow:hidden;">
+      <tr>
+        <td style="background-color:#E8712B;padding:10px 12px;">
+          <strong style="color:#ffffff;font-size:14px;">Mensaje</strong>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px;color:#212529;font-size:14px;line-height:1.6;">
+          ${data.message.replace(/\n/g, '<br>')}
+        </td>
+      </tr>
+    </table>`
+
+  const preheader = `${data.name} — ${data.message.substring(0, 80)}`
+  return baseLayout(content, preheader)
+}
+
+// ─── Template: Recuperación de contraseña → Usuario ───
+
+interface PasswordResetEmailData {
+  userName: string
+  resetUrl: string
+}
+
+export function passwordResetEmail(data: PasswordResetEmailData): string {
+  const content = `
+    <h2 style="margin:0 0 8px;color:#1B3A5C;font-size:20px;">Recuperar contrase&ntilde;a</h2>
+    <p style="margin:0 0 24px;color:#495057;font-size:15px;">
+      Hola <strong>${data.userName}</strong>, hemos recibido una solicitud para restablecer tu contrase&ntilde;a.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr>
+        <td align="center" style="padding:24px 0;">
+          <a href="${data.resetUrl}"
+            style="display:inline-block;background-color:#E8712B;color:#ffffff;font-size:16px;font-weight:600;padding:14px 32px;border-radius:6px;text-decoration:none;">
+            Restablecer contrase&ntilde;a
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0 0 8px;color:#495057;font-size:14px;">
+      Este enlace es v&aacute;lido durante <strong>1 hora</strong>. Si no solicitaste este cambio, puedes ignorar este email.
+    </p>
+    <p style="margin:0;color:#6c757d;font-size:12px;">
+      Si el bot&oacute;n no funciona, copia y pega esta URL en tu navegador:<br>
+      <span style="color:#2D5F8A;word-break:break-all;">${data.resetUrl}</span>
+    </p>`
+
+  const preheader = 'Restablece tu contraseña en MobautoRomero'
+  return baseLayout(content, preheader)
+}
