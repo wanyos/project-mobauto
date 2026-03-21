@@ -2,6 +2,8 @@
 // ─── POST /api/appointments ───
 // Crea una nueva cita.
 
+import { appointmentConfirmationCustomer, appointmentNotificationShop } from '../../utils/emailTemplates'
+
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const authUser = getUserFromEvent(event)
@@ -66,6 +68,34 @@ export default defineEventHandler(async (event) => {
         },
       })
     })
+
+    const emailData = {
+      customerName,
+      customerEmail,
+      customerPhone: customerPhone || null,
+      vehicleBrand: vehicleBrand || null,
+      vehicleModel: vehicleModel || null,
+      vehicleYear: vehicleYear || null,
+      vehiclePlate: vehiclePlate || null,
+      scheduledDate,
+      scheduledTime,
+      services: appointment.services.map((s) => s.service.name),
+      notes: notes || null,
+    }
+
+    // send email customer
+    sendEmail({
+      to: customerEmail,
+      subject: 'Cita registrada — MobautoRomero',
+      html: appointmentConfirmationCustomer(emailData),
+    }).catch(err => console.error('Email cliente:', err))
+
+    // send email taller
+    sendEmail({
+      to: process.env.GMAIL_USER ?? '',
+      subject: `Nueva reserva: ${customerName} — ${scheduledDate} ${scheduledTime}`,
+      html: appointmentNotificationShop(emailData),
+    }).catch(err => console.error('Email taller:', err))
 
     setResponseStatus(event, 201)
     return {

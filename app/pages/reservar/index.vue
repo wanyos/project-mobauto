@@ -46,12 +46,6 @@
                   />
                 </div>
                 <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">{{ service.shortDescription }}</p>
-                <q-badge
-                  :color="form.services.includes(service.slug) ? 'primary' : 'grey-4'"
-                  :text-color="form.services.includes(service.slug) ? 'white' : 'grey-8'"
-                  class="mt-1.5"
-                  :label="service.priceRange"
-                />
               </div>
             </q-card-section>
           </q-card>
@@ -104,11 +98,15 @@
       <q-step :name="4" title="Tus Datos" icon="person" :done="step > 4">
         <div class="space-y-4">
           <q-input v-model="form.customerName" label="Nombre completo" outlined
+            placeholder="Ej: Juan García López"
             :rules="[(v: string) => !!v || 'Obligatorio']" />
           <q-input v-model="form.customerEmail" label="Email" type="email" outlined
+            placeholder="Ej: cliente@email.com"
             :rules="[(v: string) => !!v || 'Obligatorio']" />
-          <q-input v-model="form.customerPhone" label="Teléfono" outlined />
+          <q-input v-model="form.customerPhone" label="Teléfono" outlined
+            placeholder="Ej: 612 345 678" />
           <q-input v-model="form.notes" label="Notas adicionales (opcional)"
+            placeholder="Ej: El coche tiene un golpe en el lateral derecho..."
             type="textarea" outlined />
         </div>
         <q-stepper-navigation>
@@ -166,9 +164,9 @@
       <q-card class="max-w-sm">
         <q-card-section class="text-center py-8">
           <q-icon name="check_circle" size="64px" color="positive" />
-          <h2 class="text-2xl font-bold mt-4">¡Cita Reservada!</h2>
+          <h2 class="text-2xl font-bold mt-4">¡Cita Registrada!</h2>
           <p class="text-gray-500 mt-2">
-            Te hemos enviado un email de confirmación a {{ form.customerEmail }}.
+            Te hemos enviado los detalles de tu reserva a {{ form.customerEmail }}.
           </p>
         </q-card-section>
         <q-card-actions align="center">
