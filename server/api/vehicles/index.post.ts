@@ -7,6 +7,15 @@ export default defineEventHandler(async (event) => {
 
   const { brand, model, year, plate, color } = validateBody(createVehicleSchema, await readBody(event))
 
+  // Verificar matrícula duplicada antes de crear
+  const existing = await prisma.vehicle.findUnique({ where: { plate } })
+  if (existing) {
+    throw createError({
+      statusCode: 409,
+      statusMessage: 'Ya existe un vehículo con esa matrícula',
+    })
+  }
+
   try {
     const vehicle = await prisma.vehicle.create({
       data: {

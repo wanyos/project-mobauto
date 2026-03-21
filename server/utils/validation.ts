@@ -46,6 +46,7 @@ export const createAppointmentSchema = z.object({
   customerName: z.string().min(1, 'El nombre es obligatorio').max(200),
   customerEmail: z.string().email('Email no válido'),
   customerPhone: z.string().max(20).nullish(),
+  vehicleId: z.string().uuid().nullish(),
   vehicleBrand: z.string().max(100).nullish(),
   vehicleModel: z.string().max(100).nullish(),
   vehicleYear: z.number().int().min(1900).max(2100).nullish(),

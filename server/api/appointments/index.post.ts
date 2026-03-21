@@ -10,11 +10,23 @@ export default defineEventHandler(async (event) => {
 
   const {
     customerName, customerEmail, customerPhone,
-    vehicleBrand, vehicleModel, vehicleYear, vehiclePlate,
+    vehicleId, vehicleBrand, vehicleModel, vehicleYear, vehiclePlate,
     services, scheduledDate, scheduledTime, duration, notes,
   } = validateBody(createAppointmentSchema, body)
 
   try {
+    // Si se envía vehicleId, verificar que existe y pertenece al usuario
+    let linkedVehicle: { id: string; brand: string; model: string; year: number; plate: string } | null = null
+    if (vehicleId && authUser) {
+      linkedVehicle = await prisma.vehicle.findFirst({
+        where: { id: vehicleId, ownerId: authUser.userId },
+        select: { id: true, brand: true, model: true, year: true, plate: true },
+      })
+      if (!linkedVehicle) {
+        throw createError({ statusCode: 404, statusMessage: 'Vehículo no encontrado' })
+      }
+    }
+
     // Transacción atómica: verificar disponibilidad + crear cita
     // Evita race conditions donde dos requests reservan el mismo slot
     const appointment = await prisma.$transaction(async (tx) => {
@@ -45,16 +57,23 @@ export default defineEventHandler(async (event) => {
         })
       }
 
+      // Si hay vehículo vinculado, usar sus datos; si no, usar los del formulario
+      const vBrand = linkedVehicle?.brand || vehicleBrand || null
+      const vModel = linkedVehicle?.model || vehicleModel || null
+      const vYear = linkedVehicle?.year || vehicleYear || null
+      const vPlate = linkedVehicle?.plate || vehiclePlate || null
+
       return tx.appointment.create({
         data: {
           userId: authUser?.userId || null,
+          vehicleId: linkedVehicle?.id || null,
           customerName,
           customerEmail,
           customerPhone: customerPhone || null,
-          vehicleBrand: vehicleBrand || null,
-          vehicleModel: vehicleModel || null,
-          vehicleYear: vehicleYear || null,
-          vehiclePlate: vehiclePlate || null,
+          vehicleBrand: vBrand,
+          vehicleModel: vModel,
+          vehicleYear: vYear,
+          vehiclePlate: vPlate,
           scheduledDate: new Date(scheduledDate),
           scheduledTime,
           duration: duration || 60,

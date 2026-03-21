@@ -7,7 +7,8 @@
           :rules="[(v: string) => !!v || 'Obligatorio']" />
         <q-input v-model="form.email" label="Email" type="email" outlined
           :rules="[(v: string) => !!v || 'Obligatorio']" />
-        <q-input v-model="form.phone" label="Teléfono (opcional)" outlined />
+        <q-input v-model="form.phone" label="Teléfono (opcional)" outlined
+          maxlength="15" />
         <q-input v-model="form.message" label="Mensaje" type="textarea" outlined
           :rules="[(v: string) => !!v || 'Escribe tu mensaje']" />
 
