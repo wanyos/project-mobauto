@@ -163,14 +163,13 @@
             <ul class="space-y-2 text-sm">
               <li><NuxtLink to="/servicios" class="hover:text-white">Servicios</NuxtLink></li>
               <li><NuxtLink to="/reservar" class="hover:text-white">Reservar Cita</NuxtLink></li>
-              <li><NuxtLink to="/blog" class="hover:text-white">Blog</NuxtLink></li>
             </ul>
           </div>
           <div>
             <h3 class="text-white text-lg font-bold mb-4">Contacto</h3>
             <ul class="space-y-2 text-sm">
               <li>Tel: 916 04 12 62</li>
-              <li>Email: info@mobauto.es</li>
+              <li>Email: {{ useRuntimeConfig().public.contactEmail }}</li>
               <li>C. del Álamo, 44</li>
               <li>28970 Humanes de Madrid</li>
             </ul>
@@ -195,7 +194,6 @@ const navLinks = [
   { to: '/', label: 'Inicio', icon: 'home' },
   { to: '/servicios', label: 'Servicios', icon: 'build' },
   { to: '/reservar', label: 'Reservar Cita', icon: 'event' },
-  { to: '/blog', label: 'Blog', icon: 'article' },
 ]
 </script>
 

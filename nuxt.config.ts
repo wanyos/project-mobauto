@@ -5,6 +5,13 @@ export default defineNuxtConfig({
   // Herramientas de desarrollo (solo en modo dev)
   devtools: { enabled: false },
 
+  // ─── RUNTIME CONFIG ───
+  runtimeConfig: {
+    public: {
+      contactEmail: process.env.GMAIL_USER || 'mobautoromero@gmail.com',
+    },
+  },
+
   // ─── CSS GLOBAL ───
   css: ["~/assets/css/main.css"],
 

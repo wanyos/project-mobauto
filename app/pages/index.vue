@@ -119,7 +119,7 @@
               </div>
               <div class="flex items-center gap-4">
                 <q-icon name="email" size="24px" color="primary" />
-                <span>info@mobauto.es</span>
+                <span>{{ useRuntimeConfig().public.contactEmail }}</span>
               </div>
               <div class="flex items-center gap-4">
                 <q-icon name="schedule" size="24px" color="primary" />

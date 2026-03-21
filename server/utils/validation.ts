@@ -76,6 +76,33 @@ export const contactSchema = z.object({
   message: z.string().min(1, 'El mensaje es obligatorio').max(5000),
 })
 
+// ─── Servicios (Admin) ───
+
+const faqSchema = z.object({
+  question: z.string().min(1, 'La pregunta es obligatoria').max(500),
+  answer: z.string().min(1, 'La respuesta es obligatoria').max(2000),
+  sortOrder: z.number().int().min(0).default(0),
+})
+
+export const createServiceSchema = z.object({
+  slug: z.string().min(1).max(100).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug no válido (usa kebab-case)'),
+  name: z.string().min(1, 'El nombre es obligatorio').max(200),
+  shortDescription: z.string().min(1, 'La descripción corta es obligatoria').max(500),
+  fullDescription: z.string().min(1, 'La descripción completa es obligatoria').max(5000),
+  icon: z.string().min(1, 'El icono es obligatorio').max(50),
+  category: z.enum(['BODYWORK', 'REPAIR', 'MAINTENANCE', 'INSPECTION', 'OTHER']),
+  estimatedMinutes: z.number().int().positive().nullish(),
+  priceMin: z.number().positive().nullish(),
+  priceMax: z.number().positive().nullish(),
+  priceLabel: z.string().max(100).nullish(),
+  features: z.array(z.string().max(200)).default([]),
+  isActive: z.boolean().default(true),
+  sortOrder: z.number().int().min(0).default(0),
+  faqs: z.array(faqSchema).default([]),
+})
+
+export const updateServiceSchema = createServiceSchema.partial()
+
 // ─── Admin ───
 
 export const updateAppointmentStatusSchema = z.object({
